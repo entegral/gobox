@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"gobox/clients"
+	"github.com/entegral/gobox/clients"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"

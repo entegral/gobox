@@ -3,9 +3,9 @@ package dynamo
 import (
 	"context"
 
-	helpers "gobox/dynamo/helpers"
+	helpers "github.com/entegral/gobox/dynamo/helpers"
 
-	"gobox/types"
+	"github.com/entegral/gobox/types"
 )
 
 // NewTriLink creates a new TriLink instance.

@@ -3,8 +3,8 @@ package dynamo
 import (
 	"context"
 
-	"gobox/clients"
-	"gobox/types"
+	"github.com/entegral/gobox/clients"
+	"github.com/entegral/gobox/types"
 )
 
 // MonoLink is a generic type that can link two entities together in dynamo.

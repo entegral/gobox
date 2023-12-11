@@ -2,8 +2,9 @@ package dynamo
 
 import (
 	"context"
-	helpers "gobox/dynamo/helpers"
-	"gobox/types"
+
+	helpers "github.com/entegral/gobox/dynamo/helpers"
+	"github.com/entegral/gobox/types"
 )
 
 // NewMonoLink creates a new MonoLink instance.

@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	"gobox/clients"
+	"github.com/entegral/gobox/clients"
 )
 
 // Hookable defines an object that has before and after hooks designed for use in

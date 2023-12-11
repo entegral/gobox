@@ -3,9 +3,9 @@ package dynamo
 import (
 	"context"
 
-	"gobox/types"
+	"github.com/entegral/gobox/types"
 
-	helpers "gobox/dynamo/helpers"
+	helpers "github.com/entegral/gobox/dynamo/helpers"
 )
 
 // NewDiLink creates a new DiLink instance.

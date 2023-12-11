@@ -2,8 +2,9 @@ package dynamo
 
 import (
 	"context"
-	dynamo "gobox/dynamo/helpers"
 	"os"
+
+	dynamo "github.com/entegral/gobox/dynamo/helpers"
 )
 
 // Row is a sample Keyable implementation. It is not intended to be used

@@ -3,8 +3,8 @@ package dynamo
 import (
 	"context"
 
-	"gobox/clients"
-	ttypes "gobox/types"
+	"github.com/entegral/gobox/clients"
+	ttypes "github.com/entegral/gobox/types"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"

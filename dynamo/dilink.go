@@ -3,7 +3,7 @@ package dynamo
 import (
 	"context"
 
-	"gobox/types"
+	"github.com/entegral/gobox/types"
 )
 
 // DiLink is a generic type that can link two entities together in dynamo.

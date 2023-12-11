@@ -3,7 +3,7 @@ package dynamo
 import (
 	"context"
 
-	"gobox/types"
+	"github.com/entegral/gobox/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"

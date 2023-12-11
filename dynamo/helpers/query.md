@@ -12,8 +12,8 @@ import (
 
         "github.com/aws/aws-sdk-go-v2/aws"
         "github.com/aws/aws-sdk-go-v2/service/dynamodb"
-        "gobox/clients"
-        "gobox/types"
+        "github.com/entegral/gobox/clients"
+        "github.com/entegral/gobox/types"
 )
 
 // QueryByGSI executes a query against a specific Global Secondary Index (GSI) or the primary index.

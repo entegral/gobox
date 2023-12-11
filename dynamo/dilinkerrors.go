@@ -3,7 +3,7 @@ package dynamo
 import (
 	"fmt"
 
-	"gobox/types"
+	"github.com/entegral/gobox/types"
 
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )

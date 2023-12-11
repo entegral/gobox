@@ -1,4 +1,4 @@
-module gobox
+module github.com/entegral/gobox
 
 go 1.20
 
