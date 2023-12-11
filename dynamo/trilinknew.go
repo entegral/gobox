@@ -16,20 +16,20 @@ func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) *
 // CheckTriLink creates a new TriLink instance and attempts to load the entities.
 func CheckTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) (*TriLink[T0, T1, T2], error) {
 	link := NewTriLink[T0, T1, T2](entity0, entity1, entity2)
-	linkLoaded, err := link.GetLink(context.Background(), link)
+	linkLoaded, err := link.Get(context.Background(), link)
 	if err != nil {
 		return link, err
 	}
 	// load the entities
-	loaded0, err := link.GetRow(context.Background(), link.Entity0)
+	loaded0, err := link.Get(context.Background(), link.Entity0)
 	if err != nil {
 		return link, err
 	}
-	loaded1, err := link.GetRow(context.Background(), link.Entity1)
+	loaded1, err := link.Get(context.Background(), link.Entity1)
 	if err != nil {
 		return link, err
 	}
-	loaded2, err := link.GetRow(context.Background(), link.Entity2)
+	loaded2, err := link.Get(context.Background(), link.Entity2)
 	if err != nil {
 		return link, err
 	}

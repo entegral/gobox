@@ -26,7 +26,7 @@ type DynamoDBOperations struct {
 // Get gets a row from DynamoDB. The row must implement the Keyable interface.
 // The GetItemOutput response will be stored in the GetItemOutput field:
 // d.GetItemOutput
-func (d *DynamoDBOperations) GetRow(ctx context.Context, row types.Linkable) (loaded bool, err error) {
+func (d *DynamoDBOperations) Get(ctx context.Context, row types.Linkable) (loaded bool, err error) {
 	d.GetItemOutput, err = GetItem(ctx, row)
 	return d.WasGetSuccessful(), err
 }
@@ -39,7 +39,7 @@ func (d *DynamoDBOperations) WasGetSuccessful() bool {
 // Put puts a row into DynamoDB. The row must implement the Linkable interface.
 // The PutItemOutput response will be stored in the PutItemOutput field:
 // d.PutItemOutput
-func (d *DynamoDBOperations) PutRow(ctx context.Context, row types.Linkable) (err error) {
+func (d *DynamoDBOperations) Put(ctx context.Context, row types.Linkable) (err error) {
 	d.PutItemOutput, err = PutItem(ctx, row)
 	return err
 }
@@ -59,7 +59,7 @@ func (d *DynamoDBOperations) OldPutValues(item any) map[string]awstypes.Attribut
 // Delete deletes a row from DynamoDB. The row must implement the Keyable interface.
 // The DeleteItemOutput response will be stored in the DeleteItemOutput field:
 // d.DeleteItemOutput
-func (d *DynamoDBOperations) DeleteRow(ctx context.Context, row types.Keyable) (err error) {
+func (d *DynamoDBOperations) Delete(ctx context.Context, row types.Keyable) (err error) {
 	d.DeleteItemOutput, err = DeleteItem(ctx, row)
 	return err
 }

@@ -48,10 +48,10 @@ func (r *TriLink[T0, T1, T2]) Type() string {
 // If the relation is set to OneToMany, then it will establish a one-to-many relationship
 // between the two entities where Entity0 is the "one" and Entity1 is the "many".
 func (m *TriLink[T0, T1, T2]) Link(ctx context.Context, row types.Linkable) error {
-	return m.PutLink(ctx, row)
+	return m.Put(ctx, row)
 }
 
 // Unlink method to remove the connection between the two entities.
 func (m *TriLink[T0, T1, T2]) Unlink(ctx context.Context, row types.Linkable) error {
-	return m.DeleteLink(ctx, row)
+	return m.Delete(ctx, row)
 }

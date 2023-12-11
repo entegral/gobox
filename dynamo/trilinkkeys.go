@@ -13,6 +13,7 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string) {
 
 	m.E2pk = linkedE2Pk
 	m.E2sk = e2sk
+
 	m.Pk += addKeySegment(entity2Type, m.Entity2.Type())
 	m.Pk += addKeySegment(entity2pk, e2pk)
 	m.Sk += addKeySegment(entity2sk, e2sk)
