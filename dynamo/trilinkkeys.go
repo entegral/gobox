@@ -23,15 +23,13 @@ func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string) {
 	if m.Pk == "" || m.Sk == "" {
 		m.GenerateTriLinkCompositeKey()
 	}
-	if m.E1pk != "" && m.E1sk != "" {
+	if m.E2pk != "" && m.E2sk != "" {
 		return m.E2pk, m.E2sk
 	}
 	pk2 := extractKeys(entity2pk, m.Pk)
 	sk2 := extractKeys(entity2sk, m.Sk)
-	linkedPk := addKeySegment(rowType, m.Type())
-	linkedPk += addKeySegment(entity2pk, pk2)
 
-	return linkedPk, sk2
+	return pk2, sk2
 }
 
 func (m *TriLink[T0, T1, T2]) Keys(gsi int) (string, string) {
