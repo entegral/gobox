@@ -66,3 +66,17 @@ func extractKeys(label linkLabels, str string) string {
 	}
 	return "nothing found"
 }
+
+func (m *MonoLink[T0]) Keys(gsi int) (string, string) {
+	// by default, we will only prefix the primary keys of both entities with "link-".
+	// this will create a 1-1 relationship between the two entities.
+	_, _ = m.GenerateMonoLinkCompositeKey()
+
+	switch gsi {
+	case 0: // Primary keys
+		return m.Pk, m.Sk
+	default:
+		// Handle other GSIs or return an error
+		return "", ""
+	}
+}
