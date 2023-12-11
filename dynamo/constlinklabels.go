@@ -15,6 +15,7 @@ const (
 	entity0pk   linkLabels = "e0pk"
 	entity0sk   linkLabels = "e0sk"
 	entity0Type linkLabels = "e0Type"
+	rowType     linkLabels = "rowType"
 )
 
 const (

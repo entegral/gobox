@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/entegral/gobox/types"
-
-	helpers "github.com/entegral/gobox/dynamo/helpers"
 )
 
 // NewDiLink creates a new DiLink instance.
@@ -26,16 +24,16 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) *DiLink[T0, T1] {
 // create the link in dynamo.
 func CheckDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) (*DiLink[T0, T1], error) {
 	link := NewDiLink[T0, T1](entity0, entity1)
-	linkLoaded, err := helpers.GetItem(context.Background(), link)
+	linkLoaded, err := GetItem(context.Background(), link)
 	if err != nil {
 		return link, err
 	}
 	// load the entities
-	loaded0, err := helpers.GetItem(context.Background(), link.Entity0)
+	loaded0, err := GetItem(context.Background(), link.Entity0)
 	if err != nil {
 		return link, err
 	}
-	loaded1, err := helpers.GetItem(context.Background(), link.Entity1)
+	loaded1, err := GetItem(context.Background(), link.Entity1)
 	if err != nil {
 		return link, err
 	}

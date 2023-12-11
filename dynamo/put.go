@@ -29,6 +29,7 @@ func putItemWithType(ctx context.Context, client *clients.Client, row types.Link
 	if err != nil {
 		return nil, err
 	}
+	pk = addKeySegment(rowType, row.Type())
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pk}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
 	av["type"] = &awstypes.AttributeValueMemberS{Value: row.Type()}

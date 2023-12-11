@@ -3,7 +3,6 @@ package dynamo
 import (
 	"context"
 
-	helpers "github.com/entegral/gobox/dynamo/helpers"
 	"github.com/entegral/gobox/types"
 )
 
@@ -25,12 +24,12 @@ func NewMonoLink[T0 types.Linkable](entity0 T0) *MonoLink[T0] {
 // create the link in dynamo.
 func CheckMonoLink[T0 types.Linkable](entity0 T0) (*MonoLink[T0], error) {
 	link := NewMonoLink[T0](entity0)
-	linkLoaded, err := helpers.GetItem(context.Background(), link)
+	linkLoaded, err := GetItem(context.Background(), link)
 	if err != nil {
 		return link, err
 	}
 	// load the entities
-	loaded0, err := helpers.GetItem(context.Background(), link.Entity0)
+	loaded0, err := GetItem(context.Background(), link.Entity0)
 	if err != nil {
 		return link, err
 	}

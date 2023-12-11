@@ -3,8 +3,6 @@ package dynamo
 import (
 	"context"
 	"os"
-
-	dynamo "github.com/entegral/gobox/dynamo/helpers"
 )
 
 // Row is a sample Keyable implementation. It is not intended to be used
@@ -28,8 +26,8 @@ type Row struct {
 	Sk6 string `dynamodbav:"sk6,omitempty" json:"sk6,omitempty"`
 
 	// Type is the type of the row.
-	UnmarshalledType          string `dynamodbav:"type" json:"type,omitempty"`
-	dynamo.DynamoDBOperations `dynamodbav:"-" json:"-"`
+	UnmarshalledType   string `dynamodbav:"type" json:"type,omitempty"`
+	DynamoDBOperations `dynamodbav:"-" json:"-"`
 }
 
 // Type returns the type of the record.
