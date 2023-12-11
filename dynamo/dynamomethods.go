@@ -26,9 +26,9 @@ type DynamoDBOperations struct {
 // Get gets a row from DynamoDB. The row must implement the Keyable interface.
 // The GetItemOutput response will be stored in the GetItemOutput field:
 // d.GetItemOutput
-func (d *DynamoDBOperations) GetRow(ctx context.Context, row types.Linkable) (err error) {
+func (d *DynamoDBOperations) GetRow(ctx context.Context, row types.Linkable) (loaded bool, err error) {
 	d.GetItemOutput, err = GetItem(ctx, row)
-	return err
+	return d.WasGetSuccessful(), err
 }
 
 // WasGetSuccessful returns true if the last GetItem operation was successful.
