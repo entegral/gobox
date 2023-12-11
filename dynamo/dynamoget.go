@@ -24,9 +24,12 @@ func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, 
 // The row must implement the Keyable interface
 func GetItemWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.GetItemOutput, error) {
 	pk, sk := row.Keys(0)
-	pk = addKeySegment(rowType, row.Type()) + pk
+
+	pkWithTypePrefix := addKeySegment(rowType, row.Type())
+	pkWithTypePrefix += addKeySegment(rowPk, pk)
+
 	key := map[string]awstypes.AttributeValue{
-		"pk": &awstypes.AttributeValueMemberS{Value: pk},
+		"pk": &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
 
