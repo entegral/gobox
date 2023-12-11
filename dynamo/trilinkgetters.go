@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gobox/clients"
+	ttypes "gobox/types"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -35,4 +36,29 @@ func (m *TriLink[T0, T1, T2]) LoadEntity2(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// findLinkRowsByEntity0 is a generic method to query for a list of rows based on the Entity0.
+func findLinkRowsByEntity2[T2 ttypes.Linkable](ctx context.Context, clients *clients.Client, e2 T2) ([]map[string]types.AttributeValue, error) {
+	return findLinkRowsByEntityGSI[T2](ctx, clients, e2, Entity2GSI)
+}
+
+// FindCustomLinksByEntity2 is a generic method to query for a list of links based on the Entity2.
+func FindCustomLinksByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T2) ([]CustomLinkType, error) {
+	clients := clients.GetDefaultClient(ctx)
+	rows, err := findLinkRowsByEntity2[T2](ctx, clients, e1)
+	if err != nil {
+		return nil, err
+	}
+	var links []CustomLinkType
+	for _, item := range rows {
+		var link CustomLinkType
+		if err := attributevalue.UnmarshalMap(item, &link); err != nil {
+			return nil, err
+		}
+		if err := validateDynamoRowType[CustomLinkType](item, link); err == nil {
+			links = append(links, link)
+		}
+	}
+	return links, nil
 }
