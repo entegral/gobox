@@ -18,7 +18,7 @@ import (
 // Keyable interface. This method uses the default client. If you need to use a specific
 // client, use PutItemWithClient instead, or use the client.SetDefaultClient method.
 func PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	return putItemWithType(ctx, clients.GetDefaultClient(ctx), row)
+	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
 func PutItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {

@@ -59,7 +59,7 @@ func (d *DynamoDBOperations) OldPutValues(item any) map[string]awstypes.Attribut
 // Delete deletes a row from DynamoDB. The row must implement the Keyable interface.
 // The DeleteItemOutput response will be stored in the DeleteItemOutput field:
 // d.DeleteItemOutput
-func (d *DynamoDBOperations) Delete(ctx context.Context, row types.Keyable) (err error) {
+func (d *DynamoDBOperations) Delete(ctx context.Context, row types.Linkable) (err error) {
 	d.DeleteItemOutput, err = DeleteItem(ctx, row)
 	return err
 }

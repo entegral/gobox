@@ -14,8 +14,8 @@ import (
 // DeleteItem deletes a row from DynamoDB. The row must implement the Keyable
 // interface. This method uses the default client. If you need to use a specific
 // client, use DeleteItemWithClient instead, or use the client.SetDefaultClient method.
-func DeleteItem(ctx context.Context, row types.Keyable) (*dynamodb.DeleteItemOutput, error) {
-	return DeleteItemWithClient(ctx, clients.GetDefaultClient(ctx), row)
+func DeleteItem(ctx context.Context, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
+	return deleteItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
 func DeleteItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {

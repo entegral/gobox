@@ -17,7 +17,7 @@ import (
 // interface. This method uses the default client. If you need to use a specific
 // client, use GetItemWithClient instead, or use the client.SetDefaultClient method.
 func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	return GetItemWithClient(ctx, clients.GetDefaultClient(ctx), row)
+	return getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
 func GetItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
