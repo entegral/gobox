@@ -8,7 +8,7 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string) {
 	// to ensure uniqueness of the key
 	e2pk, e2sk := m.Entity2.Keys(0)
 
-	linkedE2Pk := addKeySegment(rowType, m.Type())
+	linkedE2Pk := addKeySegment(rowType, m.Entity2.Type())
 	linkedE2Pk += addKeySegment(entity0pk, e2pk)
 
 	m.E2pk = linkedE2Pk
