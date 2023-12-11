@@ -31,9 +31,9 @@ type Row struct {
 }
 
 // Type returns the type of the record.
-func (r Row) Type() string {
+func (r *Row) Type() string {
 	if r.UnmarshalledType == "" {
-		return "dilink"
+		return "row"
 	}
 	return r.UnmarshalledType
 }

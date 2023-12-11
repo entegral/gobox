@@ -28,6 +28,14 @@ func (m *MonoLink[T0]) LoadEntities(ctx context.Context, clients *clients.Client
 	return e0Loaded, e1Loaded, nil
 }
 
+// Type returns the type of the record.
+func (r *MonoLink[T0]) Type() string {
+	if r.UnmarshalledType == "" {
+		return "row"
+	}
+	return r.UnmarshalledType
+}
+
 // Link is a generic method to establish a connection between the two entities. By default
 // it will establish a one-to-one relationship between the two entities using the primary keys.
 // If the relation is set to OneToMany, then it will establish a one-to-many relationship

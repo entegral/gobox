@@ -35,6 +35,14 @@ func (m *TriLink[T0, T1, T2]) LoadEntities(ctx context.Context) (e0Loaded, e1Loa
 	return e0Loaded, e1Loaded, e2Loaded, nil
 }
 
+// Type returns the type of the record.
+func (r *TriLink[T0, T1, T2]) Type() string {
+	if r.UnmarshalledType == "" {
+		return "trilink"
+	}
+	return r.UnmarshalledType
+}
+
 // Link is a generic method to establish a connection between the two entities. By default
 // it will establish a one-to-one relationship between the two entities using the primary keys.
 // If the relation is set to OneToMany, then it will establish a one-to-many relationship
