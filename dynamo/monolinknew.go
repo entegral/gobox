@@ -23,7 +23,7 @@ func NewMonoLink[T0 types.Linkable](entity0 T0) *MonoLink[T0] {
 // If the link itself does not exist, an ErrLinkNotFound error will be returned,
 // but the entities will still be loaded and you can call the .Link() method to
 // create the link in dynamo.
-func CheckMonoLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) (*MonoLink[T0], error) {
+func CheckMonoLink[T0 types.Linkable](entity0 T0) (*MonoLink[T0], error) {
 	link := NewMonoLink[T0](entity0)
 	linkLoaded, err := helpers.GetItem(context.Background(), link)
 	if err != nil {
