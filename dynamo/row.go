@@ -56,7 +56,7 @@ func (r *Row) TableName(ctx context.Context) string {
 	return tn
 }
 
-// Keys returns the partition key and sort key for the given GSI.
-func (r *Row) Keys(gsi int) (partitionKey, sortKey string) {
-	panic("not implemented")
-}
+// // Keys returns the partition key and sort key for the given GSI.
+// func (r *Row) Keys(gsi int) (partitionKey, sortKey string) {
+// 	panic("not implemented")
+// }
