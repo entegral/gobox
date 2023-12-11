@@ -40,7 +40,9 @@ func (m *MonoLink[T0]) ExtractE0Keys() (string, string) {
 	}
 	pk := extractKeys(entity0pk, m.Pk)
 	sk := extractKeys(entity0sk, m.Sk)
-	return pk, sk
+	linkedPk := addKeySegment(rowType, m.Type())
+	linkedPk += addKeySegment(entity0pk, pk)
+	return linkedPk, sk
 }
 
 func addKeySegment(label linkLabels, value string) string {

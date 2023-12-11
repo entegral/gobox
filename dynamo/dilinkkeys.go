@@ -24,8 +24,10 @@ func (m *DiLink[T0, T1]) ExtractE1Keys() (string, string) {
 	}
 	pk1 := extractKeys(entity1pk, m.Pk)
 	sk1 := extractKeys(entity1sk, m.Sk)
+	linkedPk := addKeySegment(rowType, m.Type())
+	linkedPk += addKeySegment(entity1pk, pk1)
 
-	return pk1, sk1
+	return linkedPk, sk1
 }
 
 func (m *DiLink[T0, T1]) Keys(gsi int) (string, string) {

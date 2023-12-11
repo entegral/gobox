@@ -22,10 +22,12 @@ func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string) {
 	if m.E1pk != "" && m.E1sk != "" {
 		return m.E2pk, m.E2sk
 	}
-	pk1 := extractKeys(entity2pk, m.Pk)
-	sk1 := extractKeys(entity2sk, m.Sk)
+	pk2 := extractKeys(entity2pk, m.Pk)
+	sk2 := extractKeys(entity2sk, m.Sk)
+	linkedPk := addKeySegment(rowType, m.Type())
+	linkedPk += addKeySegment(entity2pk, pk2)
 
-	return pk1, sk1
+	return linkedPk, sk2
 }
 
 func (m *TriLink[T0, T1, T2]) Keys(gsi int) (string, string) {
