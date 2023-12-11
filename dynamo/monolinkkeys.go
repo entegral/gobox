@@ -19,7 +19,11 @@ func (m *MonoLink[T0]) GenerateMonoLinkCompositeKey() (string, string) {
 	m.Pk = ""
 	m.Sk = ""
 	e0pk, e0sk := m.Entity0.Keys(0)
-	m.E0pk = e0pk
+
+	linkedE0Pk := addKeySegment(rowType, m.Type())
+	linkedE0Pk += addKeySegment(entity0pk, e0pk)
+
+	m.E0pk = linkedE0Pk
 	m.E0sk = e0sk
 
 	// Generate first part of the key using the entity0 type, pk, and sk
@@ -40,9 +44,7 @@ func (m *MonoLink[T0]) ExtractE0Keys() (string, string) {
 	}
 	pk := extractKeys(entity0pk, m.Pk)
 	sk := extractKeys(entity0sk, m.Sk)
-	linkedPk := addKeySegment(rowType, m.Type())
-	linkedPk += addKeySegment(entity0pk, pk)
-	return linkedPk, sk
+	return pk, sk
 }
 
 func addKeySegment(label linkLabels, value string) string {
