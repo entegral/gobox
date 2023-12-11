@@ -40,10 +40,10 @@ func (m *TriLink[T0, T1, T2]) LoadEntities(ctx context.Context) (e0Loaded, e1Loa
 // If the relation is set to OneToMany, then it will establish a one-to-many relationship
 // between the two entities where Entity0 is the "one" and Entity1 is the "many".
 func (m *TriLink[T0, T1, T2]) Link(ctx context.Context, row types.Linkable) error {
-	return m.Put(ctx, row)
+	return m.PutLink(ctx, row)
 }
 
 // Unlink method to remove the connection between the two entities.
 func (m *TriLink[T0, T1, T2]) Unlink(ctx context.Context, row types.Linkable) error {
-	return m.Delete(ctx, row)
+	return m.DeleteLink(ctx, row)
 }

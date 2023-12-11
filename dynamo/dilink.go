@@ -36,10 +36,10 @@ func (m *DiLink[T0, T1]) LoadEntities(ctx context.Context) (e0Loaded bool, e1Loa
 // If the relation is set to OneToMany, then it will establish a one-to-many relationship
 // between the two entities where Entity0 is the "one" and Entity1 is the "many".
 func (m *DiLink[T0, T1]) Link(ctx context.Context, row types.Linkable) error {
-	return m.Put(ctx, row)
+	return m.PutLink(ctx, row)
 }
 
 // Unlink method to remove the connection between the two entities.
 func (m *DiLink[T0, T1]) Unlink(ctx context.Context, row types.Linkable) error {
-	return m.Delete(ctx, row)
+	return m.DeleteLink(ctx, row)
 }
