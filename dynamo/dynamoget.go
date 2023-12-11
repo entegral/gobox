@@ -16,14 +16,15 @@ import (
 // GetItem gets a row from DynamoDB. The row must implement the Keyable
 // interface. This method uses the default client. If you need to use a specific
 // client, use GetItemWithClient instead, or use the client.SetDefaultClient method.
-func GetItem(ctx context.Context, row types.Keyable) (*dynamodb.GetItemOutput, error) {
+func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
 	return GetItemWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
 // GetItemWithClient gets a row from DynamoDB using the provided client
 // The row must implement the Keyable interface
-func GetItemWithClient(ctx context.Context, client *clients.Client, row types.Keyable) (*dynamodb.GetItemOutput, error) {
+func GetItemWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.GetItemOutput, error) {
 	pk, sk := row.Keys(0)
+	pk = addKeySegment(rowType, row.Type()) + pk
 	key := map[string]awstypes.AttributeValue{
 		"pk": &awstypes.AttributeValueMemberS{Value: pk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
