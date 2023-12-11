@@ -33,16 +33,16 @@ func CheckTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2)
 	if err != nil {
 		return link, err
 	}
-	if loaded0 {
+	if !loaded0 {
 		return link, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
-	if loaded1 {
+	if !loaded1 {
 		return link, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
-	if loaded2 {
+	if !loaded2 {
 		return link, ErrEntityNotFound[T2]{Entity: link.Entity2}
 	}
-	if linkLoaded {
+	if !linkLoaded {
 		return link, ErrLinkNotFound{}
 	}
 	return link, nil

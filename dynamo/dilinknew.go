@@ -37,13 +37,13 @@ func CheckDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) (*DiLink[T0, T1]
 	if err != nil {
 		return link, err
 	}
-	if loaded0 {
+	if !loaded0 {
 		return link, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
-	if loaded1 {
+	if !loaded1 {
 		return link, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
-	if linkLoaded {
+	if !linkLoaded {
 		return link, ErrLinkNotFound{}
 	}
 	return link, nil
