@@ -20,9 +20,11 @@ func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, 
 	return GetItemWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
-// GetItemWithClient gets a row from DynamoDB using the provided client
-// The row must implement the Keyable interface
-func GetItemWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.GetItemOutput, error) {
+func GetItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
+	return getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
+}
+
+func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.GetItemOutput, error) {
 	pk, sk := row.Keys(0)
 
 	pkWithTypePrefix := addKeySegment(rowType, row.Type())
@@ -30,6 +32,51 @@ func GetItemWithClient(ctx context.Context, client *clients.Client, row types.Li
 
 	key := map[string]awstypes.AttributeValue{
 		"pk": &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix},
+		"sk": &awstypes.AttributeValueMemberS{Value: sk},
+	}
+
+	out, err := client.Dynamo().GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(clients.TableName(ctx)),
+		Key:       key,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if out.Item == nil {
+		return nil, nil
+	}
+
+	// var newRow T
+
+	// Check if T implements CustomDynamoMarshaller
+	if marshaller, ok := any(row).(types.CustomDynamoMarshaller); ok {
+		err = marshaller.UnmarshalItem(out.Item)
+	} else {
+		err = attributevalue.UnmarshalMap(out.Item, row)
+	}
+	if err != nil {
+		return nil, err
+	}
+	// if the row has a RowData field by embedding the Row struct, set it
+	rowValue := reflect.ValueOf(row).Elem()
+	if rowDataField := rowValue.FieldByName("Row"); rowDataField.IsValid() {
+		if dynamoDBOperations := rowDataField.FieldByName("DynamoDBOperations"); dynamoDBOperations.IsValid() {
+			rowData := dynamoDBOperations.FieldByName("RowData")
+			if rowData.CanSet() {
+				rowData.Set(reflect.ValueOf(out.Item))
+			}
+		}
+	}
+	return out, nil
+}
+
+// GetItemWithClient gets a row from DynamoDB using the provided client
+// The row must implement the Keyable interface
+func GetItemWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.GetItemOutput, error) {
+	pk, sk := row.Keys(0)
+
+	key := map[string]awstypes.AttributeValue{
+		"pk": &awstypes.AttributeValueMemberS{Value: pk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
 

@@ -21,6 +21,23 @@ func PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, 
 	return putItemWithType(ctx, clients.GetDefaultClient(ctx), row)
 }
 
+func PutItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
+}
+
+func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+	pk, sk := row.Keys(0)
+	av, err := attributevalue.MarshalMap(row)
+	if err != nil {
+		return nil, err
+	}
+	pkWithTypePrefix := addKeySegment(rowType, row.Type())
+	pkWithTypePrefix += addKeySegment(rowPk, pk)
+	av["pk"] = &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix}
+	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
+	return putItemWithClient(ctx, client, av)
+}
+
 // PutItemWithType puts a row into DynamoDB. The row must implement the
 // Linkable interface.
 func putItemWithType(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.PutItemOutput, error) {

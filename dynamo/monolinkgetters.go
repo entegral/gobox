@@ -102,3 +102,44 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 	}
 	return out.Items, nil
 }
+
+// Get gets a row from DynamoDB. The row must implement the Keyable interface.
+// The GetItemOutput response will be stored in the GetItemOutput field:
+// d.GetItemOutput
+func (m *MonoLink[T0]) Get(ctx context.Context, row ttypes.Linkable) (err error) {
+	m.GetItemOutput, err = GetItemPrependType(ctx, row)
+	return err
+}
+
+// WasGetSuccessful returns true if the last GetItem operation was successful.
+func (m *MonoLink[T0]) WasGetSuccessful() bool {
+	return m.GetItemOutput != nil && m.GetItemOutput.Item != nil
+}
+
+// Put puts a row into DynamoDB. The row must implement the Linkable interface.
+// The PutItemOutput response will be stored in the PutItemOutput field:
+// m.PutItemOutput
+func (m *MonoLink[T0]) Put(ctx context.Context, row ttypes.Linkable) (err error) {
+	m.PutItemOutput, err = PutItemPrependType(ctx, row)
+	return err
+}
+
+// OldPutValues returns the old values from the last successful PutItem operation.
+func (m *MonoLink[T0]) OldPutValues(item any) map[string]awstypes.AttributeValue {
+	if m.PutItemOutput == nil {
+		return nil
+	}
+	return m.PutItemOutput.Attributes
+}
+
+// func (m *MonoLink[T0]) Update(ctx context.Context, key map[string]awstypes.AttributeValue, updateExpression string, expressionAttributeValues map[string]awstypes.AttributeValue) (*dynamodb.UpdateItemOutput, (err error)) {
+// 	return UpdateItem(ctx, m.DynamoDBClient, m.TableName, key, updateExpression, expressionAttributeValues)
+// }
+
+// Delete deletes a row from DynamoDB. The row must implement the Keyable interface.
+// The DeleteItemOutput response will be stored in the DeleteItemOutput field:
+// m.DeleteItemOutput
+func (m *MonoLink[T0]) Delete(ctx context.Context, row ttypes.Linkable) (err error) {
+	m.DeleteItemOutput, err = DeleteItemPrependType(ctx, row)
+	return err
+}
