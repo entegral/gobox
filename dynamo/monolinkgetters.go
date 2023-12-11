@@ -106,9 +106,15 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 // Get gets a row from DynamoDB. The row must implement the Keyable interface.
 // The GetItemOutput response will be stored in the GetItemOutput field:
 // d.GetItemOutput
-func (m *MonoLink[T0]) GetLink(ctx context.Context, row ttypes.Linkable) (err error) {
+func (m *MonoLink[T0]) GetLink(ctx context.Context, row ttypes.Linkable) (loaded bool, err error) {
 	m.GetItemOutput, err = GetItemPrependType(ctx, row)
-	return err
+	if err != nil {
+		return false, err
+	}
+	if m.WasGetSuccessful() {
+		return true, nil
+	}
+	return false, err
 }
 
 // WasGetSuccessful returns true if the last GetItem operation was successful.
