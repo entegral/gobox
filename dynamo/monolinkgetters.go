@@ -106,7 +106,7 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 // Get gets a row from DynamoDB. The row must implement the Keyable interface.
 // The GetItemOutput response will be stored in the GetItemOutput field:
 // d.GetItemOutput
-func (m *MonoLink[T0]) Get(ctx context.Context, row ttypes.Linkable) (err error) {
+func (m *MonoLink[T0]) GetLink(ctx context.Context, row ttypes.Linkable) (err error) {
 	m.GetItemOutput, err = GetItemPrependType(ctx, row)
 	return err
 }
@@ -119,7 +119,7 @@ func (m *MonoLink[T0]) WasGetSuccessful() bool {
 // Put puts a row into DynamoDB. The row must implement the Linkable interface.
 // The PutItemOutput response will be stored in the PutItemOutput field:
 // m.PutItemOutput
-func (m *MonoLink[T0]) Put(ctx context.Context, row ttypes.Linkable) (err error) {
+func (m *MonoLink[T0]) PutLink(ctx context.Context, row ttypes.Linkable) (err error) {
 	m.PutItemOutput, err = PutItemPrependType(ctx, row)
 	return err
 }
@@ -139,7 +139,7 @@ func (m *MonoLink[T0]) OldPutValues(item any) map[string]awstypes.AttributeValue
 // Delete deletes a row from DynamoDB. The row must implement the Keyable interface.
 // The DeleteItemOutput response will be stored in the DeleteItemOutput field:
 // m.DeleteItemOutput
-func (m *MonoLink[T0]) Delete(ctx context.Context, row ttypes.Linkable) (err error) {
+func (m *MonoLink[T0]) DeleteLink(ctx context.Context, row ttypes.Linkable) (err error) {
 	m.DeleteItemOutput, err = DeleteItemPrependType(ctx, row)
 	return err
 }
