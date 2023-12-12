@@ -82,8 +82,8 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 	}
 
 	ePk, eSk := entity.Keys(0)
-	linkedE0Pk := addKeySegment(rowType, entity.Type())
-	linkedE0Pk += addKeySegment(rowPk, epkKey)
+	linkedPk := addKeySegment(rowType, entity.Type())
+	linkedPk += addKeySegment(rowPk, ePk)
 
 	kce := fmt.Sprintf("%s = :pk AND begins_with(%s, :sk)", epkKey, eskKey)
 	tn := clients.TableName(ctx)
@@ -93,7 +93,7 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 		KeyConditionExpression: &kce,
 		IndexName:              &index,
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: ePk},
+			":pk": &types.AttributeValueMemberS{Value: linkedPk},
 			":sk": &types.AttributeValueMemberS{Value: eSk},
 		},
 	}
