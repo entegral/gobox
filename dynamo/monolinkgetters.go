@@ -68,6 +68,7 @@ func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T
 // findLinkRowsByEntityGSI is a generic method to query for a list of rows based on the Entity1.
 func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *clients.Client, entity T, entityGSI EntityGSI) ([]map[string]types.AttributeValue, error) {
 	var epkKey, eskKey string
+
 	switch entityGSI {
 	case Entity0GSI:
 		epkKey = entity0pk.String()
@@ -81,6 +82,9 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 	}
 
 	ePk, eSk := entity.Keys(0)
+	linkedE0Pk := addKeySegment(rowType, entity.Type())
+	linkedE0Pk += addKeySegment(rowPk, epkKey)
+
 	kce := fmt.Sprintf("%s = :pk AND begins_with(%s, :sk)", epkKey, eskKey)
 	tn := clients.TableName(ctx)
 	index := entityGSI.String()
