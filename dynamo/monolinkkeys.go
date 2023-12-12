@@ -21,7 +21,7 @@ func (m *MonoLink[T0]) GenerateMonoLinkCompositeKey() (string, string) {
 	e0pk, e0sk := m.Entity0.Keys(0)
 
 	linkedE0Pk := addKeySegment(rowType, m.Entity0.Type())
-	linkedE0Pk += addKeySegment(entity0pk, e0pk)
+	linkedE0Pk += addKeySegment(rowPk, e0pk)
 
 	m.E0pk = linkedE0Pk
 	m.E0sk = e0sk

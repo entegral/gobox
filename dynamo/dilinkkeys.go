@@ -9,7 +9,7 @@ func (m *DiLink[T0, T1]) GenerateDiLinkCompositeKey() (string, string) {
 	e1pk, e1sk := m.Entity1.Keys(0)
 
 	linkedE1Pk := addKeySegment(rowType, m.Entity1.Type())
-	linkedE1Pk += addKeySegment(entity1pk, e1pk)
+	linkedE1Pk += addKeySegment(rowPk, e1pk)
 
 	m.E1pk = linkedE1Pk
 	m.E1sk = e1sk
