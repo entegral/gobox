@@ -20,7 +20,7 @@ func main() {
 	// put the contact info now:
 
 	contact := &exampleLib.ContactInfo{
-		MonoLink: *dynamo.NewMonoLink[*exampleLib.User](user),
+		MonoLink: dynamo.NewMonoLink[*exampleLib.User](user),
 		Phone:    "555-555-5555",
 		Addr:     "123 Main St",
 	}

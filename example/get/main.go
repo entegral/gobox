@@ -23,9 +23,10 @@ func main() {
 		logrus.Info("User not found")
 	}
 
-	// now get the contact info:
+	// now that we have the user, get can get the contact info in
+	// one of two ways:
 	contactInfo := &exampleLib.ContactInfo{}
-	loaded, err = contactInfo.GetFrom(contactInfo, user)
+	loaded, err = contactInfo.GetFrom(ctx, contactInfo, user)
 	if err != nil {
 		panic(err)
 	}

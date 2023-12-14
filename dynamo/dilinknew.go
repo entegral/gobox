@@ -8,10 +8,10 @@ import (
 
 // GetFrom accepts both entities and attempts to load the link from dynamo.
 // If either of the entities cannot be loaded from dynamo, an error will be returned.
-func (link *DiLink[T0, T1]) GetFrom(linkWrapper types.Typeable, entity0 T0, entity1 T1) (loaded bool, err error) {
-	*link = *NewDiLink[T0, T1](entity0, entity1)
+func (link *DiLink[T0, T1]) GetFrom(ctx context.Context, linkWrapper types.Typeable, entity0 T0, entity1 T1) (loaded bool, err error) {
+	*link = NewDiLink[T0, T1](entity0, entity1)
 	link.UnmarshalledType = linkWrapper.Type()
-	loaded, err = link.Get(context.Background(), link)
+	loaded, err = link.Get(ctx, link)
 	if err != nil {
 		return false, err
 	}
@@ -22,10 +22,10 @@ func (link *DiLink[T0, T1]) GetFrom(linkWrapper types.Typeable, entity0 T0, enti
 }
 
 // NewDiLink creates a new DiLink instance.
-func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) *DiLink[T0, T1] {
+func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
 	link := DiLink[T0, T1]{MonoLink: MonoLink[T0]{Entity0: entity0}, Entity1: entity1}
 	link.GenerateDiLinkCompositeKey()
-	return &link
+	return link
 }
 
 // CheckDiLink creates a new DiLink instance and attempts to load the entities.
@@ -39,27 +39,27 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) *DiLink[T0, T1] {
 // create the link in dynamo.
 func CheckDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) (*DiLink[T0, T1], error) {
 	link := NewDiLink[T0, T1](entity0, entity1)
-	linkLoaded, err := link.Get(context.Background(), link)
+	linkLoaded, err := link.Get(context.Background(), &link)
 	if err != nil {
-		return link, err
+		return &link, err
 	}
 	// load the entities
 	loaded0, err := link.Get(context.Background(), link.Entity0)
 	if err != nil {
-		return link, err
+		return &link, err
 	}
 	loaded1, err := link.Get(context.Background(), link.Entity1)
 	if err != nil {
-		return link, err
+		return &link, err
 	}
 	if !loaded0 {
-		return link, ErrEntityNotFound[T0]{Entity: link.Entity0}
+		return &link, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
 	if !loaded1 {
-		return link, ErrEntityNotFound[T1]{Entity: link.Entity1}
+		return &link, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
 	if !linkLoaded {
-		return link, ErrLinkNotFound{}
+		return &link, ErrLinkNotFound{}
 	}
-	return link, nil
+	return &link, nil
 }
