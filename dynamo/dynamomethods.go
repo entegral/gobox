@@ -2,11 +2,13 @@ package dynamo
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/entegral/gobox/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	sqstypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 // DynamoDBOperations is a struct that implements the DynamoDBOperations interface.
@@ -70,4 +72,26 @@ func (d *DynamoDBOperations) OldDeleteValues() map[string]awstypes.AttributeValu
 		return nil
 	}
 	return d.DeleteItemOutput.Attributes
+}
+
+type ErrSQSMessageEmpty struct {
+	Message sqstypes.Message
+}
+
+func (e ErrSQSMessageEmpty) Error() string {
+	return "sqs message body is empty"
+}
+
+// LoadFromMessage unmarshals an SQS message into a Row and then loads the full item from DynamoDB.
+func (d *DynamoDBOperations) LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error) {
+	if message.Body == nil || *message.Body == "" {
+		return false, ErrSQSMessageEmpty{Message: message}
+	}
+	// Unmarshal the message body into the provided Row type
+	if err := json.Unmarshal([]byte(*message.Body), row); err != nil {
+		return false, err
+	}
+
+	// Use the existing Get method to load the item from DynamoDB
+	return d.Get(ctx, row)
 }
