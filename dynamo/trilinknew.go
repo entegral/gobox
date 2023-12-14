@@ -6,6 +6,21 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
+// GetFrom accepts all entities and attempts to load the link from dynamo.
+// If any of the entities cannot be loaded from dynamo, an error will be returned.
+func (link *TriLink[T0, T1, T2]) GetFrom(linkWrapper types.Typeable, entity0 T0, entity1 T1, entity2 T2) (loaded bool, err error) {
+	*link = *NewTriLink[T0, T1, T2](entity0, entity1, entity2)
+	link.UnmarshalledType = linkWrapper.Type()
+	loaded, err = link.Get(context.Background(), link)
+	if err != nil {
+		return false, err
+	}
+	if !loaded {
+		return false, ErrLinkNotFound{}
+	}
+	return true, nil
+}
+
 // NewTriLink creates a new TriLink instance.
 func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) *TriLink[T0, T1, T2] {
 	link := TriLink[T0, T1, T2]{DiLink: DiLink[T0, T1]{MonoLink: MonoLink[T0]{Entity0: entity0}, Entity1: entity1}, Entity2: entity2}

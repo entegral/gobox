@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 
-	"github.com/entegral/gobox/dynamo"
 	"github.com/entegral/gobox/exampleLib"
 	"github.com/sirupsen/logrus"
 )
@@ -25,16 +24,14 @@ func main() {
 	}
 
 	// now get the contact info:
-	contact := &exampleLib.ContactInfo{
-		MonoLink: *dynamo.NewMonoLink[*exampleLib.User](user),
-	}
-	loaded, err = contact.Get(ctx, contact)
+	contactInfo := &exampleLib.ContactInfo{}
+	loaded, err = contactInfo.GetFrom(contactInfo, user)
 	if err != nil {
 		panic(err)
 	}
 	if loaded {
 		logrus.Println("----------------")
-		logrus.WithField("contact", *contact).Info("Contact found")
+		logrus.WithField("contact", *contactInfo).Info("Contact found")
 	} else {
 		logrus.Info("Contact not found")
 	}

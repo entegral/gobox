@@ -6,6 +6,20 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
+// GetFrom attempts to load the link associated with the given entity.
+func (link *MonoLink[T0]) GetFrom(linkWrapper types.Typeable, input T0) (loaded bool, err error) {
+	*link = *NewMonoLink[T0](input)
+	link.UnmarshalledType = linkWrapper.Type()
+	loaded, err = link.Get(context.Background(), link)
+	if err != nil {
+		return false, err
+	}
+	if !loaded {
+		return false, ErrLinkNotFound{}
+	}
+	return true, nil
+}
+
 // NewMonoLink creates a new MonoLink instance.
 func NewMonoLink[T0 types.Linkable](entity0 T0) *MonoLink[T0] {
 	link := MonoLink[T0]{Entity0: entity0}

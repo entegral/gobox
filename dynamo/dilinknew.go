@@ -6,6 +6,21 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
+// GetFrom accepts both entities and attempts to load the link from dynamo.
+// If either of the entities cannot be loaded from dynamo, an error will be returned.
+func (link *DiLink[T0, T1]) GetFrom(linkWrapper types.Typeable, entity0 T0, entity1 T1) (loaded bool, err error) {
+	*link = *NewDiLink[T0, T1](entity0, entity1)
+	link.UnmarshalledType = linkWrapper.Type()
+	loaded, err = link.Get(context.Background(), link)
+	if err != nil {
+		return false, err
+	}
+	if !loaded {
+		return false, ErrLinkNotFound{}
+	}
+	return true, nil
+}
+
 // NewDiLink creates a new DiLink instance.
 func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) *DiLink[T0, T1] {
 	link := DiLink[T0, T1]{MonoLink: MonoLink[T0]{Entity0: entity0}, Entity1: entity1}
