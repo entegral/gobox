@@ -31,36 +31,36 @@ func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) T
 
 // CheckTriLink creates a new TriLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-func CheckTriLink[T0, T1, T2 types.Linkable](triLinkWrapper types.Typeable, entity0 T0, entity1 T1, entity2 T2) (*TriLink[T0, T1, T2], error) {
+func CheckTriLink[T0, T1, T2 types.Linkable](triLinkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
 	link := NewTriLink[T0, T1, T2](entity0, entity1, entity2)
-	linkLoaded, err := link.Get(context.Background(), &link)
+	linkLoaded, err := link.Get(context.Background(), triLinkWrapper)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	// load the entities
 	loaded0, err := link.Get(context.Background(), link.Entity0)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	loaded1, err := link.Get(context.Background(), link.Entity1)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	loaded2, err := link.Get(context.Background(), link.Entity2)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	if !loaded0 {
-		return &link, ErrEntityNotFound[T0]{Entity: link.Entity0}
+		return false, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
 	if !loaded1 {
-		return &link, ErrEntityNotFound[T1]{Entity: link.Entity1}
+		return false, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
 	if !loaded2 {
-		return &link, ErrEntityNotFound[T2]{Entity: link.Entity2}
+		return false, ErrEntityNotFound[T2]{Entity: link.Entity2}
 	}
 	if !linkLoaded {
-		return &link, ErrLinkNotFound{}
+		return true, ErrLinkNotFound{}
 	}
-	return &link, nil
+	return true, nil
 }

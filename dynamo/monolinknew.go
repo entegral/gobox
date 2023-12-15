@@ -30,22 +30,22 @@ func NewMonoLink[T0 types.Linkable](entity0 T0) MonoLink[T0] {
 
 // CheckMonoLink creates a new MonoLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-func CheckMonoLink[T0 types.Linkable](entity0 T0) (*MonoLink[T0], error) {
+func CheckMonoLink[T0 types.Linkable](monoLinkWrapper types.Linkable, entity0 T0) (allEntitiesExist bool, err error) {
 	link := NewMonoLink[T0](entity0)
-	linkLoaded, err := link.Get(context.Background(), &link)
+	linkLoaded, err := link.Get(context.Background(), monoLinkWrapper)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	// load the entities
 	loaded0, err := link.Get(context.Background(), link.Entity0)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	if !loaded0 {
-		return &link, ErrEntityNotFound[T0]{Entity: link.Entity0}
+		return false, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
 	if !linkLoaded {
-		return &link, ErrLinkNotFound{}
+		return true, ErrLinkNotFound{}
 	}
-	return &link, nil
+	return true, nil
 }

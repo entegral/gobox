@@ -30,29 +30,29 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
 
 // CheckDiLink creates a new DiLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-func CheckDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) (*DiLink[T0, T1], error) {
+func CheckDiLink[T0, T1 types.Linkable](diLinkWrapper types.Linkable, entity0 T0, entity1 T1) (allEntitiesExist bool, err error) {
 	link := NewDiLink[T0, T1](entity0, entity1)
-	linkLoaded, err := link.Get(context.Background(), &link)
+	linkLoaded, err := link.Get(context.Background(), diLinkWrapper)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	// load the entities
 	loaded0, err := link.Get(context.Background(), link.Entity0)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	loaded1, err := link.Get(context.Background(), link.Entity1)
 	if err != nil {
-		return &link, err
+		return false, err
 	}
 	if !loaded0 {
-		return &link, ErrEntityNotFound[T0]{Entity: link.Entity0}
+		return false, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
 	if !loaded1 {
-		return &link, ErrEntityNotFound[T1]{Entity: link.Entity1}
+		return false, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
 	if !linkLoaded {
-		return &link, ErrLinkNotFound{}
+		return true, ErrLinkNotFound{}
 	}
-	return &link, nil
+	return true, nil
 }
