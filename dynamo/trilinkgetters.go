@@ -43,8 +43,8 @@ func findLinkRowsByEntity2[T2 ttypes.Linkable](ctx context.Context, clients *cli
 	return findLinkRowsByEntityGSI[T2](ctx, clients, e2, Entity2GSI)
 }
 
-// FindCustomLinksByEntity2 is a generic method to query for a list of links based on the Entity2.
-func FindCustomLinksByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T2) ([]CustomLinkType, error) {
+// FindByEntity2 is a generic method to query for a list of links based on the Entity2.
+func FindByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T2) ([]CustomLinkType, error) {
 	clients := clients.GetDefaultClient(ctx)
 	rows, err := findLinkRowsByEntity2[T2](ctx, clients, e1)
 	if err != nil {

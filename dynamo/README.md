@@ -43,7 +43,7 @@ package mypackage
 
 import (
     "context"
-    "github.com/entegral/gobox/dynamo"
+    "github.com/entegral/gobox/examples/monolink"
     "github.com/entegral/gobox/types"
 )
 
@@ -68,7 +68,7 @@ package mypackage
 import (
     "context"
     "fmt"
-    "github.com/entegral/gobox/dynamo"
+    "github.com/entegral/gobox/examples/monolink"
     "github.com/entegral/gobox/types"
 )
 
@@ -111,7 +111,7 @@ package mypackage
 
 import (
     "context"
-    "github.com/entegral/gobox/dynamo"
+    "github.com/entegral/gobox/examples/monolink"
     "github.com/entegral/gobox/types"
 )
 
@@ -141,7 +141,7 @@ package mypackage
 import (
     "context"
     "fmt"
-    "github.com/entegral/gobox/dynamo"
+    "github.com/entegral/gobox/examples/monolink"
     "github.com/entegral/gobox/types"
 )
 
@@ -178,7 +178,7 @@ package mypackage
 import (
 	"context"
 	"fmt"
-	"github.com/entegral/gobox/dynamo"
+	"github.com/entegral/gobox/examples/monolink"
 	"github.com/entegral/gobox/types"
 )
 

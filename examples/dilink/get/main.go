@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/entegral/gobox/exampleLib"
+	"github.com/entegral/gobox/examples/exampleLib"
 	"github.com/sirupsen/logrus"
 )
 

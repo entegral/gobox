@@ -1,10 +1,5 @@
 package dynamo
 
-import (
-	"context"
-	"os"
-)
-
 // Row is a sample Keyable implementation. It is not intended to be used
 // by itself, but rather to be embedded into other types. After embedding,
 // you should implement the TableName and Keys methods on the parent type.
@@ -27,7 +22,7 @@ type Row struct {
 
 	// Type is the type of the row.
 	UnmarshalledType   string `dynamodbav:"type" json:"type,omitempty"`
-	DynamoDBOperations `dynamodbav:"-" json:"-"`
+	dynamoDBOperations `dynamodbav:"-" json:"-"`
 }
 
 // Type returns the type of the record.
@@ -41,17 +36,6 @@ func (r *Row) Type() string {
 // IsType returns true if the record is of the given type.
 func (r Row) IsType(t string) bool {
 	return r.Type() == t
-}
-
-// TableName returns the name of the DynamoDB table.
-// By default, this is the value of the TABLENAME environment variable.
-// If you need to override this, implement this method on the parent type.
-func (r *Row) TableName(ctx context.Context) string {
-	tn := os.Getenv("TABLENAME")
-	if tn == "" {
-		panic("TABLENAME environment variable not set")
-	}
-	return tn
 }
 
 // // Keys returns the partition key and sort key for the given GSI.

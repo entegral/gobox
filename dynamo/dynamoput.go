@@ -8,7 +8,6 @@ import (
 	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -18,14 +17,15 @@ import (
 // Keyable interface. This method uses the default client. If you need to use a specific
 // client, use PutItemWithClient instead, or use the client.SetDefaultClient method.
 func PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
+	tn := clients.TableName(ctx)
+	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tn, row)
 }
 
-func PutItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
+func PutItemWithTablename(ctx context.Context, tablename string, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tablename, row)
 }
 
-func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, tablename string, row types.Linkable) (*dynamodb.PutItemOutput, error) {
 	pk, sk := row.Keys(0)
 	av, err := attributevalue.MarshalMap(row)
 	if err != nil {
@@ -36,13 +36,13 @@ func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, r
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
 	av["type"] = &awstypes.AttributeValueMemberS{Value: row.Type()}
-	return putItemWithClient(ctx, client, av)
+	return putItemWithClient(ctx, client, tablename, av)
 }
 
 // putItemWithClient puts a row into DynamoDB using the provided client.
-func putItemWithClient(ctx context.Context, client *clients.Client, av map[string]awstypes.AttributeValue) (*dynamodb.PutItemOutput, error) {
+func putItemWithClient(ctx context.Context, client *clients.Client, tablename string, av map[string]awstypes.AttributeValue) (*dynamodb.PutItemOutput, error) {
 	return client.Dynamo().PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:    aws.String(clients.TableName(ctx)),
+		TableName:    &tablename,
 		Item:         av,
 		ReturnValues: awstypes.ReturnValueAllOld,
 	})
@@ -71,5 +71,5 @@ func PutItemWithShard(ctx context.Context, client *clients.Client, row Shardable
 	pk = pk + getShard(row.MaxShard())
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pk}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
-	return putItemWithClient(ctx, client, av)
+	return putItemWithClient(ctx, client, client.TableName(ctx), av)
 }

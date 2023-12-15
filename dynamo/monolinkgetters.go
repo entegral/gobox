@@ -46,7 +46,7 @@ func findLinkRowsByEntity0[T0 ttypes.Linkable](ctx context.Context, e0 T0) ([]ma
 	return findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI)
 }
 
-// FindCustomLinksByEntity1 is a generic method to query for a list of links based on the Entity1.
+// FindByEntity1 is a generic method to query for a list of links based on the Entity1.
 func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0) ([]CustomLinkType, error) {
 	rows, err := findLinkRowsByEntity0[T0](ctx, e0)
 	if err != nil {

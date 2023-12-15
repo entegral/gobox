@@ -11,7 +11,7 @@ import (
 )
 
 func (m *DiLink[T0, T1]) LoadEntity0s(ctx context.Context) ([]T0, error) {
-	links, err := FindCustomLinksByEntity1[T1, *DiLink[T0, T1]](ctx, m.Entity1)
+	links, err := FindByEntity1[T1, *DiLink[T0, T1]](ctx, m.Entity1)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +27,8 @@ func findLinkRowsByEntity1[T1 ttypes.Linkable](ctx context.Context, clients *cli
 	return findLinkRowsByEntityGSI[T1](ctx, clients, e1, Entity1GSI)
 }
 
-// FindCustomLinksByEntity1 is a generic method to query for a list of links based on the Entity1.
-func FindCustomLinksByEntity1[T1, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T1) ([]CustomLinkType, error) {
+// FindByEntity1 is a generic method to query for a list of links based on the Entity1.
+func FindByEntity1[T1, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T1) ([]CustomLinkType, error) {
 	clients := clients.GetDefaultClient(ctx)
 	rows, err := findLinkRowsByEntity1[T1](ctx, clients, e1)
 	if err != nil {
