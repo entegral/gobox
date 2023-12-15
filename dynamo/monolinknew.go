@@ -8,8 +8,8 @@ import (
 
 // CheckLink accepts both entities and attempts to load the link from dynamo.
 // It does not attempt to load the entity itself, only the link.
-func (link *MonoLink[T0]) CheckLink(ctx context.Context, linkWrapper types.Linkable, input T0) (linkLoaded bool, err error) {
-	return checkMonoLink[T0](ctx, linkWrapper, input)
+func (link *MonoLink[T0]) CheckLink(ctx context.Context, linkWrapper types.Linkable) (linkLoaded bool, err error) {
+	return checkMonoLink[T0](ctx, linkWrapper, link.Entity0)
 }
 
 // NewMonoLink creates a new MonoLink instance.

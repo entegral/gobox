@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/entegral/gobox/dynamo"
 	"github.com/entegral/gobox/examples/exampleLib"
 	"github.com/sirupsen/logrus"
 )
@@ -25,8 +26,10 @@ func main() {
 
 	// now that we have the user, get can get the contact info in
 	// one of two ways:
-	contactInfo := &exampleLib.ContactInfo{}
-	loaded, err = contactInfo.CheckLink(ctx, contactInfo, user)
+	contactInfo := &exampleLib.ContactInfo{
+		MonoLink: dynamo.NewMonoLink(user),
+	}
+	loaded, err = contactInfo.CheckLink(ctx, contactInfo)
 	if err != nil {
 		panic(err)
 	}
