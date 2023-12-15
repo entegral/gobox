@@ -9,6 +9,9 @@ import (
 // CheckLink accepts both entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
 func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Linkable) (loaded bool, err error) {
+	if link == nil {
+		*link = NewDiLink[T0, T1](link.Entity0, link.Entity1)
+	}
 	return checkDiLink[T0, T1](ctx, linkWrapper, link.Entity0, link.Entity1)
 }
 
