@@ -23,20 +23,20 @@ func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) T
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
 func checkTriLink[T0, T1, T2 types.Linkable](ctx context.Context, triLinkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
 	link := NewTriLink[T0, T1, T2](entity0, entity1, entity2)
-	linkLoaded, err := link.Get(context.Background(), triLinkWrapper)
+	linkLoaded, err := link.Get(ctx, triLinkWrapper)
 	if err != nil {
 		return false, err
 	}
 	// load the entities
-	loaded0, err := link.Get(context.Background(), link.Entity0)
+	loaded0, err := link.Get(ctx, link.Entity0)
 	if err != nil {
 		return false, err
 	}
-	loaded1, err := link.Get(context.Background(), link.Entity1)
+	loaded1, err := link.Get(ctx, link.Entity1)
 	if err != nil {
 		return false, err
 	}
-	loaded2, err := link.Get(context.Background(), link.Entity2)
+	loaded2, err := link.Get(ctx, link.Entity2)
 	if err != nil {
 		return false, err
 	}

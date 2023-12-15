@@ -23,16 +23,16 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
 func checkDiLink[T0, T1 types.Linkable](ctx context.Context, diLinkWrapper types.Linkable, entity0 T0, entity1 T1) (allEntitiesExist bool, err error) {
 	link := NewDiLink[T0, T1](entity0, entity1)
-	linkLoaded, err := link.Get(context.Background(), diLinkWrapper)
+	linkLoaded, err := link.Get(ctx, diLinkWrapper)
 	if err != nil {
 		return false, err
 	}
 	// load the entities
-	loaded0, err := link.Get(context.Background(), link.Entity0)
+	loaded0, err := link.Get(ctx, link.Entity0)
 	if err != nil {
 		return false, err
 	}
-	loaded1, err := link.Get(context.Background(), link.Entity1)
+	loaded1, err := link.Get(ctx, link.Entity1)
 	if err != nil {
 		return false, err
 	}
