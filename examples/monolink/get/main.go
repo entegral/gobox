@@ -26,7 +26,7 @@ func main() {
 	// now that we have the user, get can get the contact info in
 	// one of two ways:
 	contactInfo := &exampleLib.ContactInfo{}
-	loaded, err = contactInfo.GetFrom(ctx, contactInfo, user)
+	loaded, err = contactInfo.CheckLink(ctx, contactInfo, user)
 	if err != nil {
 		panic(err)
 	}

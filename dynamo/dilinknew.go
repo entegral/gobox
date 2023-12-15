@@ -6,9 +6,9 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
-// GetFrom accepts both entities and attempts to load the link from dynamo.
-// If either of the entities cannot be loaded from dynamo, an error will be returned.
-func (link *DiLink[T0, T1]) GetFrom(ctx context.Context, linkWrapper types.Typeable, entity0 T0, entity1 T1) (loaded bool, err error) {
+// CheckLink accepts both entities and attempts to load the link from dynamo.
+// It does not attempt to load the entities themselves, only the link.
+func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Typeable, entity0 T0, entity1 T1) (loaded bool, err error) {
 	*link = NewDiLink[T0, T1](entity0, entity1)
 	link.UnmarshalledType = linkWrapper.Type()
 	loaded, err = link.Get(ctx, link)
@@ -28,15 +28,8 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
 	return link
 }
 
-// CheckDiLink creates a new DiLink instance and attempts to load the entities.
-// If either of the entities cannot be loaded from dynamo, an error will be returned.
-//
-// If you need a DiLink instance that does not require the entities to be loaded,
-// you can use the NewDiLink function instead.
-//
-// If the link itself does not exist, an ErrLinkNotFound error will be returned,
-// but the entities will still be loaded and you can call the .Link() method to
-// create the link in dynamo.
+// CheckDiLink creates a new DiLink instance from the entities and attempts to load them from dynamo.
+// If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
 func CheckDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) (*DiLink[T0, T1], error) {
 	link := NewDiLink[T0, T1](entity0, entity1)
 	linkLoaded, err := link.Get(context.Background(), &link)
