@@ -8,17 +8,8 @@ import (
 
 // CheckLink accepts both entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
-func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Typeable, entity0 T0, entity1 T1) (loaded bool, err error) {
-	*link = NewDiLink[T0, T1](entity0, entity1)
-	link.UnmarshalledType = linkWrapper.Type()
-	loaded, err = link.Get(ctx, link)
-	if err != nil {
-		return false, err
-	}
-	if !loaded {
-		return false, ErrLinkNotFound{}
-	}
-	return true, nil
+func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1) (loaded bool, err error) {
+	return checkDiLink[T0, T1](ctx, linkWrapper, entity0, entity1)
 }
 
 // NewDiLink creates a new DiLink instance.
@@ -30,7 +21,7 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
 
 // CheckDiLink creates a new DiLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-func CheckDiLink[T0, T1 types.Linkable](diLinkWrapper types.Linkable, entity0 T0, entity1 T1) (allEntitiesExist bool, err error) {
+func checkDiLink[T0, T1 types.Linkable](ctx context.Context, diLinkWrapper types.Linkable, entity0 T0, entity1 T1) (allEntitiesExist bool, err error) {
 	link := NewDiLink[T0, T1](entity0, entity1)
 	linkLoaded, err := link.Get(context.Background(), diLinkWrapper)
 	if err != nil {
