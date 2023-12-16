@@ -8,7 +8,7 @@ import (
 
 // CheckLink accepts all entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
-func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper LinkReturner[T0, T1, T2]) (allEntitiesExist bool, err error) {
+func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper TriLinkReturner[T0, T1, T2]) (allEntitiesExist bool, err error) {
 	l := linkWrapper.ReturnLink()
 	if l == nil {
 		return false, nil
@@ -31,7 +31,7 @@ func (link *TriLink[T0, T1, T2]) ReturnLink() *TriLink[T0, T1, T2] {
 	return link
 }
 
-type LinkReturner[T0, T1, T2 types.Linkable] interface {
+type TriLinkReturner[T0, T1, T2 types.Linkable] interface {
 	ReturnLink() (link *TriLink[T0, T1, T2])
 }
 
