@@ -8,15 +8,15 @@ import (
 
 // CheckLink accepts all entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
-func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
-	l := NewTriLink[T0, T1, T2](entity0, entity1, entity2)
-	link = &l
+func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper LinkReturner[T0, T1, T2]) (allEntitiesExist bool, err error) {
+	l := linkWrapper.ReturnLink()
+	if l == nil {
+		return false, nil
+	}
+	link = l
 	return checkTriLink[T0, T1, T2](
 		ctx,
-		linkWrapper,
-		link.Entity0,
-		link.Entity1,
-		link.Entity2,
+		*l,
 	)
 }
 
@@ -27,11 +27,18 @@ func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) T
 	return link
 }
 
+func (link *TriLink[T0, T1, T2]) ReturnLink() *TriLink[T0, T1, T2] {
+	return link
+}
+
+type LinkReturner[T0, T1, T2 types.Linkable] interface {
+	ReturnLink() (link *TriLink[T0, T1, T2])
+}
+
 // CheckTriLink creates a new TriLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-func checkTriLink[T0, T1, T2 types.Linkable](ctx context.Context, triLinkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
-	link := NewTriLink[T0, T1, T2](entity0, entity1, entity2)
-	linkLoaded, err := link.Get(ctx, triLinkWrapper)
+func checkTriLink[T0, T1, T2 types.Linkable](ctx context.Context, link TriLink[T0, T1, T2]) (allEntitiesExist bool, err error) {
+	linkLoaded, err := link.Get(ctx, &link)
 	if err != nil {
 		return false, err
 	}
