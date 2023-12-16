@@ -29,7 +29,7 @@ func main() {
 	contactInfo := &exampleLib.ContactInfo{
 		MonoLink: dynamo.NewMonoLink(user),
 	}
-	loaded, err = contactInfo.CheckLink(ctx, contactInfo, user)
+	loaded, err = contactInfo.CheckLink(ctx, contactInfo)
 	if err != nil {
 		panic(err)
 	}
