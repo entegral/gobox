@@ -25,7 +25,7 @@ func (u *User) Type() string {
 }
 
 type ContactInfo struct {
-	dynamo.MonoLink[*User]
+	*dynamo.MonoLink[*User]
 	Phone string
 	Addr  string
 }

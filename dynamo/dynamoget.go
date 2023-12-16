@@ -60,7 +60,7 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 	// if the row has a RowData field by embedding the Row struct, set it
 	rowValue := reflect.ValueOf(row).Elem()
 	if rowDataField := rowValue.FieldByName("Row"); rowDataField.IsValid() {
-		if dynamoDBOperations := rowDataField.FieldByName("DynamoDBOperations"); dynamoDBOperations.IsValid() {
+		if dynamoDBOperations := rowDataField.FieldByName("dynamoDBOperations"); dynamoDBOperations.IsValid() {
 			rowData := dynamoDBOperations.FieldByName("RowData")
 			if rowData.CanSet() {
 				rowData.Set(reflect.ValueOf(out.Item))
