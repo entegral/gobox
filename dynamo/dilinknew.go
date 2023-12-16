@@ -24,6 +24,10 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
 	return link
 }
 
+func (link *DiLink[T0, T1]) ReturnLink() *DiLink[T0, T1] {
+	return link
+}
+
 type DiLinkReturner[T0, T1 types.Linkable] interface {
 	ReturnLink() (link *DiLink[T0, T1])
 }
