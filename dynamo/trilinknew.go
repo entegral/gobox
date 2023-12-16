@@ -3,21 +3,24 @@ package dynamo
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/entegral/gobox/types"
 )
 
 // CheckLink accepts all entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
-func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper TriLinkReturner[T0, T1, T2]) (allEntitiesExist bool, err error) {
-	l := linkWrapper.ReturnLink()
-	if l == nil {
-		return false, nil
+func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
+	var l TriLink[T0, T1, T2]
+	if link == nil {
+		l = NewTriLink(entity0, entity1, entity2)
+		link = &l
 	}
-	link = l
-	return checkTriLink[T0, T1, T2](
-		ctx,
-		*l,
-	)
+	allEntitiesExist, err = checkTriLink[T0, T1, T2](ctx, link)
+	if allEntitiesExist {
+		err := attributevalue.UnmarshalMap(link.RowData, linkWrapper)
+		return allEntitiesExist, err
+	}
+	return false, err
 }
 
 // NewTriLink creates a new TriLink instance.
@@ -27,18 +30,10 @@ func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) T
 	return link
 }
 
-func (link *TriLink[T0, T1, T2]) ReturnLink() *TriLink[T0, T1, T2] {
-	return link
-}
-
-type TriLinkReturner[T0, T1, T2 types.Linkable] interface {
-	ReturnLink() (link *TriLink[T0, T1, T2])
-}
-
 // CheckTriLink creates a new TriLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-func checkTriLink[T0, T1, T2 types.Linkable](ctx context.Context, link TriLink[T0, T1, T2]) (allEntitiesExist bool, err error) {
-	linkLoaded, err := link.Get(ctx, &link)
+func checkTriLink[T0, T1, T2 types.Linkable](ctx context.Context, link *TriLink[T0, T1, T2]) (allEntitiesExist bool, err error) {
+	linkLoaded, err := link.Get(ctx, link)
 	if err != nil {
 		return false, err
 	}

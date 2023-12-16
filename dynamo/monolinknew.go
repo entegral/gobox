@@ -30,14 +30,6 @@ func NewMonoLink[T0 types.Linkable](entity0 T0) MonoLink[T0] {
 	return link
 }
 
-func (link *MonoLink[T0]) ReturnLink() *MonoLink[T0] {
-	return link
-}
-
-type MonoLinkSetter[T0 types.Linkable] interface {
-	ReturnLink() (link *MonoLink[T0])
-}
-
 // CheckMonoLink creates a new MonoLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
 func checkMonoLink[T0 types.Linkable](ctx context.Context, link *MonoLink[T0]) (allEntitiesExist bool, err error) {
