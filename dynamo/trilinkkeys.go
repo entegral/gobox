@@ -1,23 +1,45 @@
 package dynamo
 
-func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string) {
+func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, error) {
 	// generate keys for the 0th entity
-	m.GenerateDiLinkCompositeKey()
+	m.GenerateDiLinkKeys()
 
 	// Generate second part of the key using the entity1 type, pk, and sk
 	// to ensure uniqueness of the key
-	e2pk, e2sk := m.Entity2.Keys(0)
+	e2pk, e2sk, err := m.Entity2.Keys(0)
+	if err != nil {
+		return "", "", err
+	}
 
-	linkedE2Pk := addKeySegment(rowType, m.Entity2.Type())
-	linkedE2Pk += addKeySegment(rowPk, e2pk)
+	linkedE2Pk, err := addKeySegment(rowType, m.Entity2.Type())
+	if err != nil {
+		return "", "", err
+	}
+	seg, err := addKeySegment(rowPk, e2pk)
+	if err != nil {
+		return "", "", err
+	}
+	linkedE2Pk += seg
+
+	linkedE2Pk += seg
 
 	m.E2pk = linkedE2Pk
 	m.E2sk = e2sk
 
-	m.Pk += addKeySegment(entity2Type, m.Entity2.Type())
-	m.Pk += addKeySegment(entity2pk, e2pk)
-	m.Sk += addKeySegment(entity2sk, e2sk)
-	return m.Pk, m.Sk
+	m.Pk, err = addKeySegment(entity2Type, m.Entity2.Type())
+	if err != nil {
+		return "", "", err
+	}
+	seg, err = addKeySegment(entity2pk, e2pk)
+	if err != nil {
+		return "", "", err
+	}
+	m.Pk += seg
+	m.Sk, err = addKeySegment(entity2sk, e2sk)
+	if err != nil {
+		return "", "", err
+	}
+	return m.Pk, m.Sk, nil
 }
 
 func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string) {
@@ -33,18 +55,21 @@ func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string) {
 	return pk2, sk2
 }
 
-func (m *TriLink[T0, T1, T2]) Keys(gsi int) (string, string) {
+func (m *TriLink[T0, T1, T2]) Keys(gsi int) (string, string, error) {
 	// by default, we will only prefix the primary keys of both entities with "link-".
 	// this will create a 1-1 relationship between the two entities.
-	_, _ = m.GenerateTriLinkCompositeKey()
+	_, _, err := m.GenerateTriLinkCompositeKey()
+	if err != nil {
+		return "", "", err
+	}
 
 	switch gsi {
 	case 0: // Primary keys
-		return m.Pk, m.Sk
+		return m.Pk, m.Sk, nil
 	case 1: // GSI 1
-		return m.Pk1, m.Sk1
+		return m.Pk1, m.Sk1, nil
 	default:
 		// Handle other GSIs or return an error
-		return "", ""
+		return "", "", ErrInvalidGSI{GSI: gsi}
 	}
 }

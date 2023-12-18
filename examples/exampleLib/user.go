@@ -10,13 +10,13 @@ type User struct {
 }
 
 // Keys returns the partition key and sort key for the row
-func (u *User) Keys(gsi int) (string, string) {
+func (u *User) Keys(gsi int) (string, string, error) {
 	// For this example, assuming GUID is the partition key and Email is the sort key.
 	// Additional logic can be added to handle different GSIs if necessary.
 	switch gsi {
 	default:
 		// Handle other GSIs or return an error
-		return u.Email, "info"
+		return u.Email, "info", nil
 	}
 }
 

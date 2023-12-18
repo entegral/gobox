@@ -23,9 +23,21 @@ func DeleteItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.D
 }
 
 func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
-	pk, sk := row.Keys(0)
+	pk, sk, err := row.Keys(0)
+	if err != nil {
+		return nil, err
+	}
+	properPk, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return nil, err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return nil, err
+	}
+	properPk += seg
 	key := map[string]awstypes.AttributeValue{
-		"pk": &awstypes.AttributeValueMemberS{Value: addKeySegment(rowType, row.Type()) + addKeySegment(rowPk, pk)},
+		"pk": &awstypes.AttributeValueMemberS{Value: properPk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
 
@@ -39,7 +51,10 @@ func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client
 // DeleteItemWithClient deletes a row from DynamoDB using the provided client
 // The row must implement the Keyable interface
 func DeleteItemWithClient(ctx context.Context, client *clients.Client, row types.Keyable) (*dynamodb.DeleteItemOutput, error) {
-	pk, sk := row.Keys(0)
+	pk, sk, err := row.Keys(0)
+	if err != nil {
+		return nil, err
+	}
 	key := map[string]awstypes.AttributeValue{
 		"pk": &awstypes.AttributeValueMemberS{Value: pk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},

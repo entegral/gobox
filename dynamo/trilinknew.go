@@ -10,10 +10,10 @@ import (
 // CheckLink accepts all entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
 func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
-	var l TriLink[T0, T1, T2]
+	var l *TriLink[T0, T1, T2]
 	if link == nil {
 		l = NewTriLink(entity0, entity1, entity2)
-		link = &l
+		link = l
 	}
 	allEntitiesExist, err = checkTriLink[T0, T1, T2](ctx, link)
 	if allEntitiesExist {
@@ -24,10 +24,10 @@ func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper type
 }
 
 // NewTriLink creates a new TriLink instance.
-func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) TriLink[T0, T1, T2] {
+func NewTriLink[T0, T1, T2 types.Linkable](entity0 T0, entity1 T1, entity2 T2) *TriLink[T0, T1, T2] {
 	link := TriLink[T0, T1, T2]{DiLink: DiLink[T0, T1]{MonoLink: MonoLink[T0]{Entity0: entity0}, Entity1: entity1}, Entity2: entity2}
 	link.GenerateTriLinkCompositeKey()
-	return link
+	return &link
 }
 
 // CheckTriLink creates a new TriLink instance from the entities and attempts to load them from dynamo.

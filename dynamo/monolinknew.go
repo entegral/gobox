@@ -10,10 +10,10 @@ import (
 // CheckLink accepts both entities and attempts to load the link from dynamo.
 // It does not attempt to load the entity itself, only the link.
 func (link *MonoLink[T0]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0) (linkLoaded bool, err error) {
-	var l MonoLink[T0]
+	var l *MonoLink[T0]
 	if link == nil {
 		l = NewMonoLink(entity0)
-		link = &l
+		link = l
 	}
 	loaded, err := checkMonoLink[T0](ctx, link)
 	if loaded {
@@ -24,10 +24,10 @@ func (link *MonoLink[T0]) CheckLink(ctx context.Context, linkWrapper types.Linka
 }
 
 // NewMonoLink creates a new MonoLink instance.
-func NewMonoLink[T0 types.Linkable](entity0 T0) MonoLink[T0] {
+func NewMonoLink[T0 types.Linkable](entity0 T0) *MonoLink[T0] {
 	link := MonoLink[T0]{Entity0: entity0}
-	link.GenerateMonoLinkCompositeKey()
-	return link
+	link.GenerateMonoLinkKeys()
+	return &link
 }
 
 // CheckMonoLink creates a new MonoLink instance from the entities and attempts to load them from dynamo.

@@ -26,7 +26,7 @@ func main() {
 
 	// now get the contact info:
 	contact := &exampleLib.ContactInfo{
-		MonoLink: dynamo.NewMonoLink[*exampleLib.User](user),
+		MonoLink: dynamo.NewMonoLink(user),
 	}
 	err = contact.Delete(ctx, contact)
 	if err != nil {

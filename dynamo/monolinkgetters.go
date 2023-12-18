@@ -14,7 +14,10 @@ import (
 )
 
 func (m *MonoLink[T0]) LoadEntity0(ctx context.Context) (bool, error) {
-	e0pk, e0sk := m.ExtractE0Keys()
+	e0pk, e0sk, err := m.ExtractE0Keys()
+	if err != nil {
+		return false, err
+	}
 	tn := m.TableName(ctx)
 	clients := clients.GetDefaultClient(ctx)
 	out, err := clients.Dynamo().GetItem(ctx, &dynamodb.GetItemInput{
@@ -81,9 +84,19 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 		eskKey = entity2sk.String()
 	}
 
-	ePk, eSk := entity.Keys(0)
-	linkedPk := addKeySegment(rowType, entity.Type())
-	linkedPk += addKeySegment(rowPk, ePk)
+	ePk, eSk, err := entity.Keys(0)
+	if err != nil {
+		return nil, err
+	}
+	linkedPk, err := addKeySegment(rowType, entity.Type())
+	if err != nil {
+		return nil, err
+	}
+	seg, err := addKeySegment(rowPk, ePk)
+	if err != nil {
+		return nil, err
+	}
+	linkedPk += seg
 
 	kce := fmt.Sprintf("%s = :pk AND begins_with(%s, :sk)", epkKey, eskKey)
 	tn := clients.TableName(ctx)

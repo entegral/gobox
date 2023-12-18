@@ -25,10 +25,20 @@ func GetItemWithTablename(ctx context.Context, tablename string, row types.Linka
 }
 
 func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, tablename string, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	pk, sk := row.Keys(0)
+	pk, sk, err := row.Keys(0)
+	if err != nil {
+		return nil, err
+	}
 
-	pkWithTypePrefix := addKeySegment(rowType, row.Type())
-	pkWithTypePrefix += addKeySegment(rowPk, pk)
+	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return nil, err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return nil, err
+	}
+	pkWithTypePrefix += seg
 
 	key := map[string]awstypes.AttributeValue{
 		"pk": &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix},

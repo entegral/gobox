@@ -10,10 +10,10 @@ import (
 // CheckLink accepts both entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
 func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1) (loaded bool, err error) {
-	var l DiLink[T0, T1]
+	var l *DiLink[T0, T1]
 	if link == nil {
 		l = NewDiLink(entity0, entity1)
-		link = &l
+		link = l
 	}
 	loaded, err = checkDiLink[T0, T1](ctx, link)
 	if loaded {
@@ -24,10 +24,10 @@ func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Lin
 }
 
 // NewDiLink creates a new DiLink instance.
-func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) DiLink[T0, T1] {
+func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) *DiLink[T0, T1] {
 	link := DiLink[T0, T1]{MonoLink: MonoLink[T0]{Entity0: entity0}, Entity1: entity1}
-	link.GenerateDiLinkCompositeKey()
-	return link
+	link.GenerateDiLinkKeys()
+	return &link
 }
 
 // CheckDiLink creates a new DiLink instance from the entities and attempts to load them from dynamo.

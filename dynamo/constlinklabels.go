@@ -6,6 +6,22 @@ func (l linkLabels) String() string {
 	return string(l)
 }
 
+func (ll linkLabels) Labels() []string {
+	labels := make([]string, len(ll))
+	for i, label := range ll {
+		labels[i] = string(label)
+	}
+	return labels
+}
+
+func (ll linkLabels) Values() []string {
+	values := make([]string, len(ll))
+	for i, value := range ll {
+		values[i] = string(value)
+	}
+	return values
+}
+
 const (
 	// Entity0GSI is the name of the GSI used to contain the primary composite
 	// key of the 0th entity.
