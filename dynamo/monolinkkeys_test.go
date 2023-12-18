@@ -100,22 +100,17 @@ func TestExtracKeys(t *testing.T) {
 
 func TestAddKeySegment(t *testing.T) {
 	tests := []struct {
-		name  string
-		label linkLabels
-		value string
-		want  string
+		name    string
+		label   linkLabels
+		value   string
+		want    string
+		wantErr bool
 	}{
 		{
 			name:  "Test with non-empty label",
 			label: "testLabel",
 			value: "testValue",
 			want:  "/testLabel(testValue)",
-		},
-		{
-			name:  "Test with empty label",
-			label: "",
-			value: "testValue",
-			want:  "testValue",
 		},
 		{
 			name:  "Test with non-alphanumeric label",
@@ -136,16 +131,35 @@ func TestAddKeySegment(t *testing.T) {
 			want:  "/testLabel()",
 		},
 		{
-			name:  "Test with both label and value empty",
-			label: "",
-			value: "",
-			want:  "",
+			name:    "Test with both label and value empty",
+			label:   "",
+			value:   "",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "Test with value containing newline character",
+			label:   "testLabel",
+			value:   "test\nValue",
+			wantErr: true,
+		},
+		{
+			name:    "Test with value matching a linkLabel",
+			label:   "testLabel",
+			value:   "e0Type",
+			wantErr: true,
 		},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, _ := addKeySegment(tt.label, tt.value); got != tt.want {
+			fmt.Println(i)
+			got, err := addKeySegment(tt.label, tt.value)
+			if (err == nil) && tt.wantErr {
+				t.Errorf("addKeySegment() error = %v, wantErr %v, for %v", err, tt.wantErr, tt.name)
+				return
+			}
+			if got != tt.want {
 				t.Errorf("addKeySegment() = %v, want %v", got, tt.want)
 			}
 		})

@@ -79,17 +79,14 @@ func addKeySegment(label linkLabels, value string) (string, error) {
 	if strings.ContainsAny(string(label), "()") || strings.ContainsAny(value, "()") || strings.Contains(value, "\n") {
 		return "", errors.New("label and value must not contain parentheses or newline characters")
 	}
-
-	// Check if value matches any linkLabel
-	labels := label.Labels()
-	for _, ll := range labels {
-		if value == string(ll) {
-			return "", errors.New("value must not match any linkLabel")
-		}
+	if label == "" {
+		return "", errors.New("label must not be empty")
 	}
 
-	if label == "" {
-		return value, nil
+	// Check if value matches any linkLabel
+	err := label.IsValidValue(value)
+	if err != nil {
+		return "", err
 	}
 	return fmt.Sprintf("/%s(%s)", label, value), nil
 }
