@@ -101,6 +101,16 @@ func NewFromConfig(ctx context.Context, cfg aws.Config) Client {
 	}
 }
 
+func (c Client) WithTableName(tablename string) Client {
+	c.tablename = tablename
+	return c
+}
+
+func (c Client) WithConfig(cfg aws.Config) Client {
+	c.Config = cfg
+	return c
+}
+
 // newConfigWithCredentials creates an AWS Config using the provided IAM credentials.
 func newConfigWithCredentials(ctx context.Context, accessKeyID, secretAccessKey, sessionToken string) (aws.Config, error) {
 	// Create a static credentials provider
@@ -130,8 +140,16 @@ func (c *Client) S3() *awsS3.Client {
 	return c.s3
 }
 
+type DynamoMethods interface {
+	GetItem(ctx context.Context, in *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	PutItem(ctx context.Context, in *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
+	DeleteItem(ctx context.Context, in *dynamodb.DeleteItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.DeleteItemOutput, error)
+	Query(ctx context.Context, in *dynamodb.QueryInput, optFns ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error)
+	UpdateItem(ctx context.Context, in *dynamodb.UpdateItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.UpdateItemOutput, error)
+}
+
 // Dynamo returns the Dynamo client, or creates one if one doesnt exist
-func (c *Client) Dynamo() *dynamodb.Client {
+func (c *Client) Dynamo() DynamoMethods {
 	if c.dynamo == nil {
 		c.dynamo = dynamodb.NewFromConfig(c.Config)
 	}
