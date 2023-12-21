@@ -99,7 +99,7 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 	linkedPk += seg
 
 	kce := fmt.Sprintf("%s = :pk AND begins_with(%s, :sk)", epkKey, eskKey)
-	tn := clients.TableName(ctx)
+	tn := ttypes.CheckTableable(ctx, entity)
 	index := entityGSI.String()
 	qi := dynamodb.QueryInput{
 		TableName:              &tn,

@@ -16,7 +16,7 @@ import (
 // GetItem gets a row from DynamoDB. The row must implement the Keyable
 // interface.
 func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	tn := clients.TableName(ctx)
+	tn := types.CheckTableable(ctx, row)
 	return getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tn, row)
 }
 

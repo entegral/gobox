@@ -6,7 +6,6 @@ import (
 	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -40,9 +39,9 @@ func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client
 		"pk": &awstypes.AttributeValueMemberS{Value: properPk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
-
+	tn := types.CheckTableable(ctx, row)
 	return client.Dynamo().DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName:    aws.String(clients.TableName(ctx)),
+		TableName:    &tn,
 		Key:          key,
 		ReturnValues: awstypes.ReturnValueAllOld,
 	})
@@ -59,9 +58,9 @@ func DeleteItemWithClient(ctx context.Context, client *clients.Client, row types
 		"pk": &awstypes.AttributeValueMemberS{Value: pk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
-
+	tn := types.CheckTableable(ctx, row)
 	return client.Dynamo().DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName:    aws.String(clients.TableName(ctx)),
+		TableName:    &tn,
 		Key:          key,
 		ReturnValues: awstypes.ReturnValueAllOld,
 	})
