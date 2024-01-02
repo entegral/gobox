@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 // EntityGSI is the name of the GSI used to contain the composite
@@ -74,11 +73,20 @@ func (m *MonoLink[T0]) ExtractE0Keys() (string, string, error) {
 	return pk, sk, nil
 }
 
+type ErrInvalidKeySegment struct {
+	label string
+	value string
+}
+
+func (e ErrInvalidKeySegment) Error() string {
+	return fmt.Sprintf("invalid key segment: %s(%s)", e.label, e.value)
+}
+
 func addKeySegment(label linkLabels, value string) (string, error) {
 	// Check if label or value contains characters that could affect the regex
-	if strings.ContainsAny(string(label), "()") || strings.ContainsAny(value, "()") || strings.Contains(value, "\n") {
-		return "", errors.New("label and value must not contain parentheses or newline characters")
-	}
+	// if strings.ContainsAny(string(label), "()") || strings.ContainsAny(value, "()") || strings.Contains(value, "\n") {
+	// 	return "", ErrInvalidKeySegment{string(label), value}
+	// }
 	if label == "" {
 		return "", errors.New("label must not be empty")
 	}

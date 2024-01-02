@@ -4,7 +4,7 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 	// generate keys for the 0th entity
 	m.GenerateDiLinkKeys()
 
-	// Generate second part of the key using the entity1 type, pk, and sk
+	// Generate third part of the key using the entity2 type, pk, and sk
 	// to ensure uniqueness of the key
 	e2pk, e2sk, err := m.Entity2.Keys(0)
 	if err != nil {
@@ -26,10 +26,11 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 	m.E2pk = linkedE2Pk
 	m.E2sk = e2sk
 
-	m.Pk, err = addKeySegment(entity2Type, m.Entity2.Type())
+	seg, err = addKeySegment(entity2Type, m.Entity2.Type())
 	if err != nil {
 		return "", "", err
 	}
+	m.Pk += seg
 	seg, err = addKeySegment(entity2pk, e2pk)
 	if err != nil {
 		return "", "", err

@@ -84,5 +84,6 @@ func PutItemWithShard(ctx context.Context, client *clients.Client, row Shardable
 	pk = pk + getShard(row.MaxShard())
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pk}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
-	return putItemWithClient(ctx, client, client.TableName(ctx), av)
+	tn := types.CheckTableable(ctx, row)
+	return putItemWithClient(ctx, client, tn, av)
 }
