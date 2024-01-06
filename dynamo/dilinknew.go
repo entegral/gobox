@@ -11,10 +11,8 @@ import (
 // It does not attempt to load the entities themselves, only the link.
 func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1) (loaded bool, err error) {
 	var l *DiLink[T0, T1]
-	if link == nil {
-		l = NewDiLink(entity0, entity1)
-		link = l
-	}
+	l = NewDiLink(entity0, entity1)
+	link = l
 	loaded, err = checkDiLink[T0, T1](ctx, link)
 	if loaded {
 		err := attributevalue.UnmarshalMap(link.RowData, linkWrapper)
