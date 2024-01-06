@@ -3,49 +3,27 @@ package main
 import (
 	"context"
 
-	"github.com/entegral/gobox/dynamo"
 	"github.com/entegral/gobox/examples/exampleLib"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	email, name, age := "test@gmail.com", "Test User Name", 30
 	ctx := context.Background()
-	// Create a new user
-	user := &exampleLib.User{
-		Email: email,
-		Name:  name,
-		Age:   age,
-	}
-	err := user.Put(ctx, user)
-	if err != nil {
-		panic(err)
-	}
-	userWithOtherTable := &exampleLib.User{
-		Email: email,
-		Name:  name,
-		Age:   age,
-	}
-	userWithOtherTable.Tablename = "otherTableName"
-	err = userWithOtherTable.Put(ctx, userWithOtherTable)
-	if err != nil {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
-	}
-	if user != nil {
-		logrus.WithField("user", user).Info("User created")
-	}
 
-	// put the contact info link now:
+	user := exampleLib.PutUser(context.Background())
+	logrus.WithField("user", user).Info("User created")
+
+	// put less frequently used contact info into a monolink:
 	contact := &exampleLib.ContactInfo{
-		MonoLink: dynamo.NewMonoLink[*exampleLib.User](user),
-		Phone:    "555-555-5555",
-		Addr:     "123 Main St",
+		Phone: "555-555-5555",
+		Addr:  "123 Main St",
 	}
-
+	isValid, err := contact.CheckLink(ctx, contact, user)
+	if !isValid {
+		logrus.Errorln("Error checking contact info")
+		panic(err)
+	}
 	err = contact.Put(ctx, contact)
 	if err != nil {
 		logrus.Errorln("Error putting contact info")

@@ -13,7 +13,7 @@ func main() {
 	ctx := context.Background()
 
 	// put the user and car first:
-	user, car := seedRows(ctx)
+	user, car := exampleLib.PutUser(ctx), exampleLib.PutCar(ctx)
 
 	// put the pinkSlip link now:
 	pinkSlip := &exampleLib.PinkSlip{
@@ -26,27 +26,4 @@ func main() {
 		panic(err)
 	}
 	logrus.WithField("pink slip", pinkSlip).Info("Pink slip created")
-}
-
-func seedRows(ctx context.Context) (user *exampleLib.User, car *exampleLib.Car) {
-	email, name, age := "test@gmail.com", "Test User Name", 30
-	user = &exampleLib.User{
-		Email: email,
-		Name:  name,
-		Age:   age,
-	}
-	err := user.Put(ctx, user)
-	if err != nil {
-		panic(err)
-	}
-	car = &exampleLib.Car{
-		Make:  "Honda",
-		Model: "Civic",
-		Year:  2018,
-	}
-	err = car.Put(ctx, car)
-	if err != nil {
-		panic(err)
-	}
-	return user, car
 }
