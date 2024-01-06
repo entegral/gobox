@@ -2,7 +2,10 @@ package dynamo
 
 func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, error) {
 	// generate keys for the 0th entity
-	m.GenerateDiLinkKeys()
+	_, _, err := m.GenerateDiLinkKeys()
+	if err != nil {
+		return "", "", err
+	}
 
 	// Generate third part of the key using the entity2 type, pk, and sk
 	// to ensure uniqueness of the key
@@ -19,8 +22,6 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 	if err != nil {
 		return "", "", err
 	}
-	linkedE2Pk += seg
-
 	linkedE2Pk += seg
 
 	m.E2pk = linkedE2Pk
@@ -40,6 +41,7 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 	if err != nil {
 		return "", "", err
 	}
+	m.Sk += seg
 	return m.Pk, m.Sk, nil
 }
 
