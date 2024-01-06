@@ -16,7 +16,7 @@ import (
 // GetItem gets a row from DynamoDB. The row must implement the Keyable
 // interface.
 func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	tn := clients.TableName(ctx)
+	tn := types.CheckTableable(ctx, row)
 	return getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tn, row)
 }
 
@@ -25,10 +25,20 @@ func GetItemWithTablename(ctx context.Context, tablename string, row types.Linka
 }
 
 func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, tablename string, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	pk, sk := row.Keys(0)
+	pk, sk, err := row.Keys(0)
+	if err != nil {
+		return nil, err
+	}
 
-	pkWithTypePrefix := addKeySegment(rowType, row.Type())
-	pkWithTypePrefix += addKeySegment(rowPk, pk)
+	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return nil, err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return nil, err
+	}
+	pkWithTypePrefix += seg
 
 	key := map[string]awstypes.AttributeValue{
 		"pk": &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix},
@@ -60,7 +70,7 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 	// if the row has a RowData field by embedding the Row struct, set it
 	rowValue := reflect.ValueOf(row).Elem()
 	if rowDataField := rowValue.FieldByName("Row"); rowDataField.IsValid() {
-		if dynamoDBOperations := rowDataField.FieldByName("DynamoDBOperations"); dynamoDBOperations.IsValid() {
+		if dynamoDBOperations := rowDataField.FieldByName("dynamoDBOperations"); dynamoDBOperations.IsValid() {
 			rowData := dynamoDBOperations.FieldByName("RowData")
 			if rowData.CanSet() {
 				rowData.Set(reflect.ValueOf(out.Item))

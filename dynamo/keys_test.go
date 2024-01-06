@@ -3,14 +3,16 @@ package dynamo
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type a struct {
 	Row
 }
 
-func (a a) Keys(gsi int) (string, string) {
-	return "partionKeyA", "sortKeyA"
+func (a a) Keys(gsi int) (string, string, error) {
+	return "partionKeyA", "sortKeyA", nil
 }
 
 func (a a) Type() string {
@@ -29,28 +31,24 @@ func (b b) Type() string {
 	return "typeB" + fmt.Sprintf("%d", b.value)
 }
 
-func (b b) Keys(gsi int) (string, string) {
-	return "partionKeyB", "sortKeyB"
+func (b b) Keys(gsi int) (string, string, error) {
+	return "partionKeyB", "sortKeyB", nil
 }
 
 type testType struct {
 	DiLink[a, b]
 }
 
-func TestGenerateLinkCompositeKey(t *testing.T) {
+func TestGenerateLinkKeys(t *testing.T) {
 	t.Run("Generate Pk and Sk", func(t *testing.T) {
 		a := a{}
 		b := b{}
 		testType := testType{}
 		testType.Entity0 = a
 		testType.Entity1 = b
-		testType.GenerateDiLinkCompositeKey()
-		if testType.Pk != "/e0Type(typeA)/e0Pk(partionKeyA)/e1Type(typeB)/e1Pk(partionKeyB)" {
-			t.Errorf("Expected Pk to be /e0Type(typeA)/e0Pk(partionKeyA)/e1Type(typeB)/e1Pk(partionKeyB), got %s", testType.Pk)
-		}
-		if testType.Sk != "/e0Sk(sortKeyA)/e1Sk(sortKeyB)" {
-			t.Errorf("Expected Sk to be /e0Sk(sortKeyA)/e1Sk(sortKeyB), got %s", testType.Sk)
-		}
+		testType.GenerateDiLinkKeys()
+		assert.Equal(t, "/e0Type(typeA)/e0pk(partionKeyA)/e1Type(typeB)/e1pk(partionKeyB)", testType.Pk)
+		assert.Equal(t, "/e0sk(sortKeyA)/e1sk(sortKeyB)", testType.Sk)
 	})
 	t.Run("Extract Entity0 Pk and Sk", func(t *testing.T) {
 		a := a{}
@@ -58,16 +56,10 @@ func TestGenerateLinkCompositeKey(t *testing.T) {
 		testType := testType{}
 		testType.Entity0 = a
 		testType.Entity1 = b
-		testType.GenerateDiLinkCompositeKey()
-		pk, sk := testType.ExtractE0Keys()
-		if pk != "partionKeyA" {
-			fmt.Println("testType.Pk", testType.Pk)
-			t.Errorf("Expected pk to be partionKeyA, got %s", pk)
-		}
-		if sk != "sortKeyA" {
-			fmt.Println("testType.Sk", testType.Sk)
-			t.Errorf("Expected sk to be sortKeyA, got %s", sk)
-		}
+		testType.GenerateDiLinkKeys()
+		pk, sk, _ := testType.ExtractE0Keys()
+		assert.Equal(t, "/rowType(typeA)/rowPk(partionKeyA)", pk)
+		assert.Equal(t, "sortKeyA", sk)
 	})
 	t.Run("Extract Entity1 Pk and Sk", func(t *testing.T) {
 		a := a{}
@@ -75,15 +67,9 @@ func TestGenerateLinkCompositeKey(t *testing.T) {
 		testType := testType{}
 		testType.Entity0 = a
 		testType.Entity1 = b
-		testType.GenerateDiLinkCompositeKey()
+		testType.GenerateDiLinkKeys()
 		pk, sk := testType.ExtractE1Keys()
-		if pk != "partionKeyB" {
-			fmt.Println("testType.Pk", testType.Pk)
-			t.Errorf("Expected pk to be partionKeyA, got %s", pk)
-		}
-		if sk != "sortKeyB" {
-			fmt.Println("testType.Sk", testType.Sk)
-			t.Errorf("Expected sk to be sortKeyA, got %s", sk)
-		}
+		assert.Equal(t, "/rowType(typeB)/rowPk(partionKeyB)", pk)
+		assert.Equal(t, "sortKeyB", sk)
 	})
 }

@@ -17,7 +17,7 @@ import (
 // Keyable interface. This method uses the default client. If you need to use a specific
 // client, use PutItemWithClient instead, or use the client.SetDefaultClient method.
 func PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	tn := clients.TableName(ctx)
+	tn := types.CheckTableable(ctx, row)
 	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tn, row)
 }
 
@@ -26,13 +26,23 @@ func PutItemWithTablename(ctx context.Context, tablename string, row types.Linka
 }
 
 func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, tablename string, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	pk, sk := row.Keys(0)
+	pk, sk, err := row.Keys(0)
+	if err != nil {
+		return nil, err
+	}
 	av, err := attributevalue.MarshalMap(row)
 	if err != nil {
 		return nil, err
 	}
-	pkWithTypePrefix := addKeySegment(rowType, row.Type())
-	pkWithTypePrefix += addKeySegment(rowPk, pk)
+	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return nil, err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return nil, err
+	}
+	pkWithTypePrefix += seg
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
 	av["type"] = &awstypes.AttributeValueMemberS{Value: row.Type()}
@@ -63,7 +73,10 @@ func getShard(maxShard int) string {
 
 // PutItemWithShard puts a row into DynamoDB using the provided client and shard.
 func PutItemWithShard(ctx context.Context, client *clients.Client, row Shardable) (*dynamodb.PutItemOutput, error) {
-	pk, sk := row.Keys(0)
+	pk, sk, err := row.Keys(0)
+	if err != nil {
+		return nil, err
+	}
 	av, err := attributevalue.MarshalMap(row)
 	if err != nil {
 		return nil, err
@@ -71,5 +84,6 @@ func PutItemWithShard(ctx context.Context, client *clients.Client, row Shardable
 	pk = pk + getShard(row.MaxShard())
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pk}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
-	return putItemWithClient(ctx, client, client.TableName(ctx), av)
+	tn := types.CheckTableable(ctx, row)
+	return putItemWithClient(ctx, client, tn, av)
 }

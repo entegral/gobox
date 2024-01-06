@@ -11,5 +11,5 @@ type Keyable interface {
 	// partition key and sort key for the given GSI, however, you should
 	// also ensure any other GSI fields that rely on struct fields are
 	// populated as well.
-	Keys(gsi int) (partitionKey, sortKey string)
+	Keys(gsi int) (partitionKey, sortKey string, err error)
 }

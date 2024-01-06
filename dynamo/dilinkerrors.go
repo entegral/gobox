@@ -54,3 +54,11 @@ func validateDynamoRowType[T types.Typeable](out map[string]awstypes.AttributeVa
 	}
 	return nil
 }
+
+type ErrInvalidGSI struct {
+	GSI int
+}
+
+func (e ErrInvalidGSI) Error() string {
+	return fmt.Sprintf("Invalid GSI for link type: %d", e.GSI)
+}

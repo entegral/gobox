@@ -14,28 +14,26 @@ func main() {
 	user := &exampleLib.User{
 		Email: "test@gmail.com",
 	}
-	loaded, err := user.Get(ctx, user)
+	err := user.Delete(ctx, user)
 	if err != nil {
 		panic(err)
 	}
-	if loaded {
-		logrus.WithField("user", *user).Info("User found")
+	if user.DeleteItemOutput != nil && user.DeleteItemOutput.Attributes != nil {
+		logrus.WithField("delete attributes", user.DeleteItemOutput.Attributes).Info("User deleted")
 	} else {
 		logrus.Info("User not found")
 	}
 
-	// now that we have the user, get can get the contact info in
-	// one of two ways:
-	contactInfo := &exampleLib.ContactInfo{
+	// now get the contact info:
+	contact := &exampleLib.ContactInfo{
 		MonoLink: dynamo.NewMonoLink(user),
 	}
-	loaded, err = contactInfo.CheckLink(ctx, contactInfo)
+	err = contact.Delete(ctx, contact)
 	if err != nil {
 		panic(err)
 	}
-	if loaded {
-		logrus.Println("----------------")
-		logrus.WithField("contact", *contactInfo).Info("Contact found")
+	if contact.DeleteItemOutput != nil && contact.DeleteItemOutput.Attributes != nil {
+		logrus.WithField("delete attributes", contact.DeleteItemOutput.Attributes).Info("Contact deleted")
 	} else {
 		logrus.Info("Contact not found")
 	}
