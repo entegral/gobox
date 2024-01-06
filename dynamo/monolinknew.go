@@ -10,11 +10,7 @@ import (
 // CheckLink accepts both entities and attempts to load the link from dynamo.
 // It does not attempt to load the entity itself, only the link.
 func (link *MonoLink[T0]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0) (linkLoaded bool, err error) {
-	var l *MonoLink[T0]
-	if link == nil {
-		l = NewMonoLink(entity0)
-		link = l
-	}
+	link = NewMonoLink(entity0)
 	loaded, err := checkMonoLink[T0](ctx, link)
 	if loaded {
 		err := attributevalue.UnmarshalMap(link.RowData, linkWrapper)

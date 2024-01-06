@@ -10,11 +10,7 @@ import (
 // CheckLink accepts all entities and attempts to load the link from dynamo.
 // It does not attempt to load the entities themselves, only the link.
 func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper types.Linkable, entity0 T0, entity1 T1, entity2 T2) (allEntitiesExist bool, err error) {
-	var l *TriLink[T0, T1, T2]
-	if link == nil {
-		l = NewTriLink(entity0, entity1, entity2)
-		link = l
-	}
+	link = NewTriLink(entity0, entity1, entity2)
 	allEntitiesExist, err = checkTriLink[T0, T1, T2](ctx, link)
 	if allEntitiesExist {
 		err := attributevalue.UnmarshalMap(link.RowData, linkWrapper)
