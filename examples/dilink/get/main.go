@@ -10,30 +10,22 @@ import (
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	ctx := context.Background()
-	user := &exampleLib.User{
-		Email: "test@gmail.com",
-	}
-	loaded, err := user.Get(ctx, user)
-	if err != nil {
-		panic(err)
-	}
-	if loaded {
-		logrus.WithField("user", *user).Info("User found")
-	} else {
-		logrus.Info("User not found")
-	}
+	user := exampleLib.PutUser(ctx, "")
+	car := exampleLib.PutCar(ctx, "", "")
+	logrus.WithFields(logrus.Fields{
+		"user": user,
+		"car":  car,
+	}).Info("data seeded")
 
-	// now that we have the user, get can get the contact info in
-	// one of two ways:
-	contactInfo := &exampleLib.ContactInfo{}
-	loaded, err = contactInfo.CheckLink(ctx, contactInfo, user)
+	// get the pinkSlip link now:
+	pinkSlip := &exampleLib.PinkSlip{}
+	loaded, err := pinkSlip.CheckLink(ctx, pinkSlip, user, car)
 	if err != nil {
 		panic(err)
 	}
-	if loaded {
-		logrus.Println("----------------")
-		logrus.WithField("contact", *contactInfo).Info("Contact found")
-	} else {
-		logrus.Info("Contact not found")
+	if !loaded {
+		logrus.Errorln("Pink slip not found")
+		return
 	}
+	logrus.WithField("pink slip", pinkSlip).Info("Pink slip loaded")
 }

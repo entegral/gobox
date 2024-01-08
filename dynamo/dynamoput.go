@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 
 	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
@@ -51,10 +52,15 @@ func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 
 // putItemWithClient puts a row into DynamoDB using the provided client.
 func putItemWithClient(ctx context.Context, client *clients.Client, tablename string, av map[string]awstypes.AttributeValue) (*dynamodb.PutItemOutput, error) {
+	rcc := awstypes.ReturnConsumedCapacityNone
+	if os.Getenv("TESTING") == "true" {
+		rcc = awstypes.ReturnConsumedCapacityTotal
+	}
 	return client.Dynamo().PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:    &tablename,
-		Item:         av,
-		ReturnValues: awstypes.ReturnValueAllOld,
+		TableName:              &tablename,
+		Item:                   av,
+		ReturnValues:           awstypes.ReturnValueAllOld,
+		ReturnConsumedCapacity: rcc,
 	})
 }
 

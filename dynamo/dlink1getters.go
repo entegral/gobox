@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/entegral/gobox/clients"
 	ttypes "github.com/entegral/gobox/types"
@@ -40,6 +41,13 @@ func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
 
 func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context) ([]T1, error) {
 	client := clients.GetDefaultClient(ctx)
+	loaded, err := m.LoadEntity0(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !loaded {
+		return nil, ErrEntityNotFound[T0]{Entity: m.Entity0}
+	}
 	return findEntity1s[T0, T1](ctx, client, m.Entity0)
 }
 
@@ -66,8 +74,14 @@ func findEntity1s[T0, T1 ttypes.Linkable](ctx context.Context, clients *clients.
 	var entity1s []T1
 	for _, link := range links {
 		link.Entity0 = e0
-		link.LoadEntity1(ctx)
-		entity1s = append(entity1s, link.Entity1)
+		loaded, err := link.LoadEntity1(ctx)
+		if err != nil {
+			slog.Error("error loading entity1 for link", err)
+			continue
+		}
+		if loaded {
+			entity1s = append(entity1s, link.Entity1)
+		}
 	}
 	return entity1s, nil
 }

@@ -11,6 +11,14 @@ import (
 )
 
 func (m *DiLink[T0, T1]) LoadEntity0s(ctx context.Context) ([]T0, error) {
+	loaded, err := m.LoadEntity1(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !loaded {
+		return nil, ErrEntityNotFound[T1]{Entity: m.Entity1}
+	}
+
 	links, err := FindByEntity1[T1, *DiLink[T0, T1]](ctx, m.Entity1)
 	if err != nil {
 		return nil, err

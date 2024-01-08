@@ -11,7 +11,7 @@ func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	ctx := context.Background()
 
-	user := exampleLib.PutUser(context.Background())
+	user := exampleLib.PutUser(context.Background(), "")
 	logrus.WithField("user", user).Info("User created")
 
 	// put less frequently used contact info into a monolink:

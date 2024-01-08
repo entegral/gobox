@@ -2,10 +2,16 @@ package exampleLib
 
 import "context"
 
-func PutCar(ctx context.Context) *Car {
+func PutCar(ctx context.Context, make, model string) *Car {
+	if make == "" {
+		make = "Honda"
+	}
+	if model == "" {
+		model = "Civic"
+	}
 	car := &Car{
-		Make:  "Honda",
-		Model: "Civic",
+		Make:  make,
+		Model: model,
 		Year:  2018,
 	}
 	err := car.Put(ctx, car)

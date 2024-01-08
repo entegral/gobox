@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"context"
+	"os"
 
 	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
@@ -35,15 +36,20 @@ func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client
 		return nil, err
 	}
 	properPk += seg
+	rcc := awstypes.ReturnConsumedCapacityNone
+	if os.Getenv("TESTING") == "true" {
+		rcc = awstypes.ReturnConsumedCapacityTotal
+	}
 	key := map[string]awstypes.AttributeValue{
 		"pk": &awstypes.AttributeValueMemberS{Value: properPk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
 	tn := types.CheckTableable(ctx, row)
 	return client.Dynamo().DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName:    &tn,
-		Key:          key,
-		ReturnValues: awstypes.ReturnValueAllOld,
+		TableName:              &tn,
+		Key:                    key,
+		ReturnValues:           awstypes.ReturnValueAllOld,
+		ReturnConsumedCapacity: rcc,
 	})
 }
 

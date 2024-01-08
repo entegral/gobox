@@ -9,6 +9,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-	user := exampleLib.PutUser(ctx)
+	user := exampleLib.PutUser(ctx, "")
 	fmt.Println("User:", user)
 }

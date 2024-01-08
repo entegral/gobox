@@ -2,8 +2,11 @@ package exampleLib
 
 import "context"
 
-func PutUser(ctx context.Context) (user *User) {
-	email, name, age := "test@gmail.com", "Test User Name", 30
+func PutUser(ctx context.Context, email string) (user *User) {
+	if email == "" {
+		email = "test@gmail.com"
+	}
+	name, age := "Test User Name", 30
 	user = &User{
 		Email: email,
 		Name:  name,

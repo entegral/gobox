@@ -82,6 +82,10 @@ func (d *dynamoDBOperations) Put(ctx context.Context, row types.Linkable) (err e
 	return err
 }
 
+func (d *dynamoDBOperations) WasPutSuccessful() bool {
+	return d.PutItemOutput != nil
+}
+
 // OldPutValues returns the old values from the last successful PutItem operation.
 func (d *dynamoDBOperations) OldPutValues(item any) map[string]awstypes.AttributeValue {
 	if d.PutItemOutput == nil {
