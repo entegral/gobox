@@ -39,7 +39,7 @@ func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context) ([]T1, error) {
+func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Typeable) ([]T1, error) {
 	client := clients.GetDefaultClient(ctx)
 	loaded, err := m.LoadEntity0(ctx)
 	if err != nil {
@@ -48,12 +48,12 @@ func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context) ([]T1, error) {
 	if !loaded {
 		return nil, ErrEntityNotFound[T0]{Entity: m.Entity0}
 	}
-	return findEntity1s[T0, T1](ctx, client, m.Entity0)
+	return findEntity1s[T0, T1](ctx, client, m.Entity0, linkWrapper)
 }
 
 // findLinksByEntity0 is a generic method to query for a list of links based on the Entity0.
-func findDiLinksByEntity0[T0, T1 ttypes.Linkable](ctx context.Context, clients *clients.Client, e0 T0) ([]DiLink[T0, T1], error) {
-	rows, err := findLinkRowsByEntityGSI[T0](ctx, clients, e0, Entity0GSI)
+func findDiLinksByEntity0[T0, T1 ttypes.Linkable](ctx context.Context, clients *clients.Client, e0 T0, linkWrapper ttypes.Typeable) ([]DiLink[T0, T1], error) {
+	rows, err := findLinkRowsByEntityGSI[T0](ctx, clients, e0, Entity0GSI, linkWrapper)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,8 @@ func findDiLinksByEntity0[T0, T1 ttypes.Linkable](ctx context.Context, clients *
 }
 
 // findEntity1s is a generic method to load a list of Entity1s linked to the provided Entity0.
-func findEntity1s[T0, T1 ttypes.Linkable](ctx context.Context, clients *clients.Client, e0 T0) ([]T1, error) {
-	links, err := findDiLinksByEntity0[T0, T1](ctx, clients, e0)
+func findEntity1s[T0, T1 ttypes.Linkable](ctx context.Context, clients *clients.Client, e0 T0, linkWrapper ttypes.Typeable) ([]T1, error) {
+	links, err := findDiLinksByEntity0[T0, T1](ctx, clients, e0, linkWrapper)
 	if err != nil {
 		return nil, err
 	}

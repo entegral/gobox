@@ -12,8 +12,10 @@ import (
 
 func TestDiLink(t *testing.T) {
 	// init
-	t.Setenv("TABLENAME", os.Getenv("TABLENAME"))
-	t.Setenv("TESTING", os.Getenv("TESTING")) // this will ensure return consumed capacity values are returned
+	os.Setenv("TESTING", "true")
+	os.Setenv("TABLENAME", "arctica")
+	// t.Setenv("TABLENAME", os.Getenv("TABLENAME"))
+	// t.Setenv("TESTING", os.Getenv("TESTING")) // this will ensure return consumed capacity values are returned
 	ctx := context.Background()
 	// ensure we start with an empty slate
 	const email = "testDiLinkEmail@gmail.com"
@@ -54,6 +56,18 @@ func TestDiLink(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	// generate some minimal entities for testing
+	// these only have the minimum required fields to generate the composite keys
+	minimalUser := &exampleLib.User{
+		Email: email,
+	}
+	minimalCar := &exampleLib.Car{
+		Make:  carmake,
+		Model: model,
+		Year:  year,
+	}
+
 	t.Run("DiLink", func(t *testing.T) {
 		t.Run("CheckLink", func(t *testing.T) {
 			t.Run("Should return an error", func(t *testing.T) {
@@ -101,15 +115,6 @@ func TestDiLink(t *testing.T) {
 			})
 		})
 		t.Run("LoadEntities", func(t *testing.T) {
-			// check the pink slip only using entities with composite key values
-			minimalUser := &exampleLib.User{
-				Email: email,
-			}
-			minimalCar := &exampleLib.Car{
-				Make:  carmake,
-				Model: model,
-				Year:  year,
-			}
 			pinkSlip := &exampleLib.PinkSlip{
 				DiLink: *dynamo.NewDiLink(minimalUser, minimalCar),
 			}
@@ -153,6 +158,74 @@ func TestDiLink(t *testing.T) {
 				assert.Equal(t, model, pinkSlip.Entity1.Model)
 				assert.Equal(t, year, pinkSlip.Entity1.Year)
 				assert.Equal(t, carDetails, *pinkSlip.Entity1.Details)
+			})
+		})
+		t.Run("FindEntities", func(t *testing.T) {
+			t.Run("LoadEntity0s", func(t *testing.T) {
+				// start with a fresh pink slip
+				pinkSlip := &exampleLib.PinkSlip{
+					DiLink: *dynamo.NewDiLink(minimalUser, minimalCar),
+				}
+				t.Run("Should return an array of cars when pink slips do exist", func(t *testing.T) {
+					// now the pink slip has been created locally with only enough info to generate the composite keys
+					entities, err := pinkSlip.LoadEntity0s(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					t.Log("entities:", entities)
+					assert.Equal(t, nil, err)
+					assert.Equal(t, 1, len(entities))
+					assert.NotEqual(t, nil, entities[0])
+					assert.Equal(t, preClearedUser.Email, entities[0].Email)
+					assert.Equal(t, preClearedUser.Name, entities[0].Name)
+					assert.Equal(t, preClearedUser.Age, entities[0].Age)
+				})
+				t.Run("Should return an empty array when no pink slips exist", func(t *testing.T) {
+					// now we have to delete the pink slip from dynamo and re-run the test
+					err := pinkSlip.Delete(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					// now we should get an empty array
+					entities, err := pinkSlip.LoadEntity0s(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					t.Log("entities:", entities)
+					assert.Equal(t, nil, err)
+					assert.Equal(t, 0, len(entities))
+				})
+			})
+			t.Run("FindEntity1s", func(t *testing.T) {
+				t.Run("Should return an empty array when no pink slips exist", func(t *testing.T) {
+					// we should get a similar result here as we did above
+					// now we should get an empty array
+					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					t.Log("entities:", entities)
+					assert.Equal(t, nil, err)
+					assert.Equal(t, 0, len(entities))
+				})
+				t.Run("Should return an array of cars when pink slips do exist", func(t *testing.T) {
+					// should get a list of cars back after saving the pink slip again
+					err := pinkSlip.Put(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					t.Log("entities:", entities)
+					assert.Equal(t, nil, err)
+					assert.Equal(t, 1, len(entities))
+					assert.Equal(t, preClearedCar.Make, entities[0].Make)
+					assert.Equal(t, preClearedCar.Model, entities[0].Model)
+					assert.Equal(t, preClearedCar.Year, entities[0].Year)
+					assert.Equal(t, preClearedCar.Details, entities[0].Details)
+				})
 			})
 		})
 	})

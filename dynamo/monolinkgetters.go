@@ -44,14 +44,14 @@ func (m *MonoLink[T0]) LoadEntity0(ctx context.Context) (bool, error) {
 }
 
 // findLinkRowsByEntity0 is a generic method to query for a list of rows based on the Entity0.
-func findLinkRowsByEntity0[T0 ttypes.Linkable](ctx context.Context, e0 T0) ([]map[string]types.AttributeValue, error) {
+func findLinkRowsByEntity0[T0 ttypes.Linkable](ctx context.Context, e0 T0, linkWrapper ttypes.Typeable) ([]map[string]types.AttributeValue, error) {
 	client := clients.GetDefaultClient(ctx)
-	return findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI)
+	return findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI, linkWrapper)
 }
 
 // FindByEntity1 is a generic method to query for a list of links based on the Entity1.
-func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0) ([]CustomLinkType, error) {
-	rows, err := findLinkRowsByEntity0[T0](ctx, e0)
+func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
+	rows, err := findLinkRowsByEntity0[T0](ctx, e0, linkWrapper)
 	if err != nil {
 		return nil, err
 	}
@@ -61,15 +61,15 @@ func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T
 		if err := attributevalue.UnmarshalMap(item, &link); err != nil {
 			return nil, err
 		}
-		if err := validateDynamoRowType[CustomLinkType](item, link); err == nil {
-			links = append(links, link)
-		}
+		// if err := validateDynamoRowType[CustomLinkType](item, link); err == nil {
+		links = append(links, link)
+		// }
 	}
 	return links, nil
 }
 
 // findLinkRowsByEntityGSI is a generic method to query for a list of rows based on the Entity1.
-func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *clients.Client, entity T, entityGSI EntityGSI) ([]map[string]types.AttributeValue, error) {
+func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *clients.Client, entity T, entityGSI EntityGSI, linkWrapper ttypes.Typeable) ([]map[string]types.AttributeValue, error) {
 	var epkKey, eskKey string
 
 	switch entityGSI {
@@ -101,13 +101,19 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 	kce := fmt.Sprintf("%s = :pk AND begins_with(%s, :sk)", epkKey, eskKey)
 	tn := ttypes.CheckTableable(ctx, entity)
 	index := entityGSI.String()
+	fe := "#type = :type"
 	qi := dynamodb.QueryInput{
 		TableName:              &tn,
 		KeyConditionExpression: &kce,
 		IndexName:              &index,
+		FilterExpression:       &fe,
+		ExpressionAttributeNames: map[string]string{
+			"#type": "type",
+		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: linkedPk},
-			":sk": &types.AttributeValueMemberS{Value: eSk},
+			":pk":   &types.AttributeValueMemberS{Value: linkedPk},
+			":sk":   &types.AttributeValueMemberS{Value: eSk},
+			":type": &types.AttributeValueMemberS{Value: linkWrapper.Type()},
 		},
 	}
 	out, err := clients.Dynamo().Query(ctx, &qi)

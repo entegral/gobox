@@ -39,14 +39,14 @@ func (m *TriLink[T0, T1, T2]) LoadEntity2(ctx context.Context) (bool, error) {
 }
 
 // findLinkRowsByEntity0 is a generic method to query for a list of rows based on the Entity0.
-func findLinkRowsByEntity2[T2 ttypes.Linkable](ctx context.Context, clients *clients.Client, e2 T2) ([]map[string]types.AttributeValue, error) {
-	return findLinkRowsByEntityGSI[T2](ctx, clients, e2, Entity2GSI)
+func findLinkRowsByEntity2[T2 ttypes.Linkable](ctx context.Context, clients *clients.Client, e2 T2, linkWrapper ttypes.Typeable) ([]map[string]types.AttributeValue, error) {
+	return findLinkRowsByEntityGSI[T2](ctx, clients, e2, Entity2GSI, linkWrapper)
 }
 
 // FindByEntity2 is a generic method to query for a list of links based on the Entity2.
-func FindByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T2) ([]CustomLinkType, error) {
+func FindByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T2, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
 	clients := clients.GetDefaultClient(ctx)
-	rows, err := findLinkRowsByEntity2[T2](ctx, clients, e1)
+	rows, err := findLinkRowsByEntity2[T2](ctx, clients, e1, linkWrapper)
 	if err != nil {
 		return nil, err
 	}

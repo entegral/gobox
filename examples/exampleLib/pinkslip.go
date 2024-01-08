@@ -35,7 +35,7 @@ func (p *PinkSlip) User(ctx context.Context) (*User, error) {
 }
 
 func (p *PinkSlip) Users(ctx context.Context) ([]*User, error) {
-	users, err := p.LoadEntity0s(ctx)
+	users, err := p.LoadEntity0s(ctx, p)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (p *PinkSlip) Car(ctx context.Context) (*Car, error) {
 }
 
 func (p *PinkSlip) Cars(ctx context.Context) ([]*Car, error) {
-	cars, err := p.LoadEntity1s(ctx)
+	cars, err := p.LoadEntity1s(ctx, p)
 	if err != nil {
 		return nil, err
 	}
