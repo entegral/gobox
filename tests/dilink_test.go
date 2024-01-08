@@ -31,9 +31,15 @@ func TestDiLink(t *testing.T) {
 	// ensure we start with an empty slate
 	const carmake = "TestDiLinkMake"
 	const model = "TestDiLinkModel"
+	const year = 2022
 	preClearedCar := &exampleLib.Car{
 		Make:  carmake,
 		Model: model,
+		Year:  year,
+		Details: &exampleLib.CarDetails{
+			"doors": 4,
+			"color": "black",
+		},
 	}
 	err = preClearedCar.Delete(ctx, preClearedCar)
 	if err != nil {
@@ -92,6 +98,30 @@ func TestDiLink(t *testing.T) {
 					assert.Equal(t, true, linkExists)
 				})
 			})
+		})
+		t.Run("LoadEntities", func(t *testing.T) {
+			t.Run("LoadEntity0", func(t *testing.T) {
+				// check the pink slip only using entities with composite key values
+				minimalUser := &exampleLib.User{
+					Email: email,
+				}
+				minimalCar := &exampleLib.Car{
+					Make:  carmake,
+					Model: model,
+				}
+				pinkSlip := &exampleLib.PinkSlip{
+					DiLink: *dynamo.NewDiLink(minimalUser, minimalCar),
+				}
+				// now the pink slip has been created locally with only enough info to generate the composite keys
+				loaded, err := pinkSlip.LoadEntity0(ctx)
+				assert.Equal(t, nil, err)
+				assert.Equal(t, true, loaded)
+				assert.Equal(t, email, pinkSlip.DiLink.Entity0.Email)
+				assert.Equal(t, name, pinkSlip.DiLink.Entity0.Name)
+				assert.Equal(t, age, pinkSlip.DiLink.Entity0.Age)
+			})
+			t.Run("LoadEntity1", func(t *testing.T) {})
+			t.Run("LoadEntities", func(t *testing.T) {})
 		})
 	})
 }
