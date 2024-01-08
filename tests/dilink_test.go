@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/entegral/gobox/dynamo"
@@ -35,7 +36,7 @@ func TestDiLink(t *testing.T) {
 	const model = "TestDiLinkModel"
 	const year = 2022
 	var carDetails = exampleLib.CarDetails{
-		"doors": 4,
+		"doors": float64(4),
 		"color": "black",
 	}
 	preClearedCar := &exampleLib.Car{
@@ -66,6 +67,22 @@ func TestDiLink(t *testing.T) {
 		Make:  carmake,
 		Model: model,
 		Year:  year,
+	}
+
+	// create a second car for testing
+	car2Details := exampleLib.CarDetails{
+		"doors": float64(2),
+		"color": "red",
+	}
+	car2 := &exampleLib.Car{
+		Make:    "TestDiLinkMake2",
+		Model:   "TestDiLinkModel2",
+		Year:    2023,
+		Details: &car2Details,
+	}
+	err = car2.Delete(ctx, car2)
+	if err != nil {
+		t.Error(err)
 	}
 
 	t.Run("DiLink", func(t *testing.T) {
@@ -225,6 +242,40 @@ func TestDiLink(t *testing.T) {
 					assert.Equal(t, preClearedCar.Model, entities[0].Model)
 					assert.Equal(t, preClearedCar.Year, entities[0].Year)
 					assert.Equal(t, preClearedCar.Details, entities[0].Details)
+				})
+				t.Run("Should return an array of cars when multiple pink slips do exist", func(t *testing.T) {
+
+					err := car2.Put(ctx, car2)
+					if err != nil {
+						t.Error(err)
+					}
+					pinkSlip2 := &exampleLib.PinkSlip{
+						DiLink: *dynamo.NewDiLink(preClearedUser, car2),
+					}
+					err = pinkSlip2.Put(ctx, pinkSlip2)
+					if err != nil {
+						t.Error(err)
+					}
+					// now we should get an array of cars
+					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
+					assert.Equal(t, nil, err)
+					assert.Equal(t, 2, len(entities))
+					sort.Slice(entities, func(i, j int) bool {
+						return entities[i].Year < entities[j].Year
+					})
+					t.Log("entities:", entities)
+					assert.Equal(t, preClearedCar.Make, entities[0].Make)
+					assert.Equal(t, preClearedCar.Model, entities[0].Model)
+					assert.Equal(t, preClearedCar.Year, entities[0].Year)
+					assert.NotEqual(t, nil, *entities[0].Details)
+					assert.Equal(t, carDetails, *entities[0].Details)
+					assert.Equal(t, car2.Make, entities[1].Make)
+					assert.Equal(t, car2.Model, entities[1].Model)
+					assert.Equal(t, car2.Year, entities[1].Year)
+					assert.Equal(t, car2Details, *entities[1].Details)
 				})
 			})
 		})
