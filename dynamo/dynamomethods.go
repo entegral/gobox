@@ -27,6 +27,8 @@ type dynamoDBOperations struct {
 }
 
 // DynamoDBOperationsInterface defines the interface for DynamoDB operations.
+// An interface is used to allow for mocking in unit tests, as well as to
+// limit the scope of the methods that are exposed to the parent type.
 type DynamoDBOperationsInterface interface {
 	TableName(ctx context.Context) string
 	Get(ctx context.Context, row types.Linkable) (loaded bool, err error)
