@@ -36,6 +36,11 @@ func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, r
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
 	av["type"] = &awstypes.AttributeValueMemberS{Value: row.Type()}
+	if av["pkshard"] == nil {
+		av["pkshard"] = &awstypes.AttributeValueMemberS{
+			Value: getTypeShardKey(row.Type(), row.MaxShard()),
+		}
+	}
 	tn := row.TableName(ctx)
 	return putItemWithClient(ctx, client, tn, av)
 }
@@ -54,33 +59,7 @@ func putItemWithClient(ctx context.Context, client *clients.Client, tablename st
 	})
 }
 
-// Shardable is an interface that can be implemented by a row to indicate that it
-// should be sharded when saved to dynamo. The Shard method should return a string
-// that will be appended to the pk to create the final pk.
-type Shardable interface {
-	types.Linkable
-	MaxShard() int
-}
-
-func getShard(maxShard int) string {
+func getTypeShardKey(pk string, maxShard int) string {
 	shard := rand.Intn(maxShard)
-	return fmt.Sprintf(".%d", shard)
-}
-
-// PutItemWithShard puts a row into DynamoDB using the provided client and shard.
-func PutItemWithShard(ctx context.Context, client *clients.Client, row Shardable) (*dynamodb.PutItemOutput, error) {
-	pk, sk, err := row.Keys(0)
-	if err != nil {
-		return nil, err
-	}
-	av, err := attributevalue.MarshalMap(row)
-	if err != nil {
-		return nil, err
-	}
-	pkWithShard := pk + getShard(row.MaxShard())
-	prefixedPkWithShard, err := prependWithRowType(row, pkWithShard)
-	av["pk"] = &awstypes.AttributeValueMemberS{Value: prefixedPkWithShard}
-	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
-	tn := row.TableName(ctx)
-	return putItemWithClient(ctx, client, tn, av)
+	return fmt.Sprintf("%s.%d", pk, shard)
 }

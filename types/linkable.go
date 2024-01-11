@@ -13,6 +13,10 @@ type Tableable interface {
 	TableName(ctx context.Context) string
 }
 
+type Shardable interface {
+	MaxShard() int
+}
+
 // Linkable is an interface that can be embedded in a struct to indicate that it
 // can be linked to another entity. This interface is used by the DiLink type and
 // requires that the struct implement the Keyable and Typeable interfaces.
@@ -20,4 +24,5 @@ type Linkable interface {
 	Keyable
 	Typeable
 	Tableable
+	Shardable
 }

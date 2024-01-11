@@ -24,6 +24,12 @@ func (u *User) Type() string {
 	return "user"
 }
 
+func CreateUser(email string) *User {
+	return &User{
+		Email: email,
+	}
+}
+
 type ContactInfo struct {
 	*dynamo.MonoLink[*User]
 	Phone string

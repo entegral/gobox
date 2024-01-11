@@ -22,6 +22,8 @@ type Row struct {
 	Pk6 string `dynamodbav:"pk6,omitempty" json:"pk6,omitempty"`
 	Sk6 string `dynamodbav:"sk6,omitempty" json:"sk6,omitempty"`
 
+	// PkShard is a field that is used
+	PkShard string `dynamodbav:"pkshard,omitempty" json:"pkshard,omitempty"`
 	// Type is the type of the row.
 	UnmarshalledType   string `dynamodbav:"type" json:"type,omitempty"`
 	dynamoDBOperations `dynamodbav:"-" json:"-"`
@@ -47,5 +49,11 @@ func (r *Row) Keys(gsi int) (string, string, error) {
 	if r.Pk != "" && r.Sk == "" {
 		return r.Pk, "row", nil
 	}
-	return uuid.UUIDv4(), "row", nil
+	r.Pk = uuid.UUIDv4()
+	r.Sk = "row"
+	return r.Pk, r.Sk, nil
+}
+
+func (r *Row) MaxShard() int {
+	return 100
 }
