@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 
 	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
@@ -18,15 +17,10 @@ import (
 // Keyable interface. This method uses the default client. If you need to use a specific
 // client, use PutItemWithClient instead, or use the client.SetDefaultClient method.
 func PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	tn := types.CheckTableable(ctx, row)
-	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tn, row)
+	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
-func PutItemWithTablename(ctx context.Context, tablename string, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tablename, row)
-}
-
-func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, tablename string, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.PutItemOutput, error) {
 	pk, sk, err := row.Keys(0)
 	if err != nil {
 		return nil, err
@@ -35,25 +29,21 @@ func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 	if err != nil {
 		return nil, err
 	}
-	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	pkWithTypePrefix, err := prependWithRowType(row, pk)
 	if err != nil {
 		return nil, err
 	}
-	seg, err := addKeySegment(rowPk, pk)
-	if err != nil {
-		return nil, err
-	}
-	pkWithTypePrefix += seg
 	av["pk"] = &awstypes.AttributeValueMemberS{Value: pkWithTypePrefix}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
 	av["type"] = &awstypes.AttributeValueMemberS{Value: row.Type()}
-	return putItemWithClient(ctx, client, tablename, av)
+	tn := row.TableName(ctx)
+	return putItemWithClient(ctx, client, tn, av)
 }
 
 // putItemWithClient puts a row into DynamoDB using the provided client.
 func putItemWithClient(ctx context.Context, client *clients.Client, tablename string, av map[string]awstypes.AttributeValue) (*dynamodb.PutItemOutput, error) {
 	rcc := awstypes.ReturnConsumedCapacityNone
-	if os.Getenv("TESTING") == "true" {
+	if checkTesting() {
 		rcc = awstypes.ReturnConsumedCapacityTotal
 	}
 	return client.Dynamo().PutItem(ctx, &dynamodb.PutItemInput{
@@ -68,7 +58,7 @@ func putItemWithClient(ctx context.Context, client *clients.Client, tablename st
 // should be sharded when saved to dynamo. The Shard method should return a string
 // that will be appended to the pk to create the final pk.
 type Shardable interface {
-	types.Keyable
+	types.Linkable
 	MaxShard() int
 }
 
@@ -87,9 +77,10 @@ func PutItemWithShard(ctx context.Context, client *clients.Client, row Shardable
 	if err != nil {
 		return nil, err
 	}
-	pk = pk + getShard(row.MaxShard())
-	av["pk"] = &awstypes.AttributeValueMemberS{Value: pk}
+	pkWithShard := pk + getShard(row.MaxShard())
+	prefixedPkWithShard, err := prependWithRowType(row, pkWithShard)
+	av["pk"] = &awstypes.AttributeValueMemberS{Value: prefixedPkWithShard}
 	av["sk"] = &awstypes.AttributeValueMemberS{Value: sk}
-	tn := types.CheckTableable(ctx, row)
+	tn := row.TableName(ctx)
 	return putItemWithClient(ctx, client, tn, av)
 }

@@ -1,5 +1,7 @@
 package dynamo
 
+import "github.com/dgryski/trifles/uuid"
+
 // Row is a sample Keyable implementation. It is not intended to be used
 // by itself, but rather to be embedded into other types. After embedding,
 // you should implement the TableName and Keys methods on the parent type.
@@ -38,7 +40,12 @@ func (r Row) IsType(t string) bool {
 	return r.Type() == t
 }
 
-// // Keys returns the partition key and sort key for the given GSI.
-// func (r *Row) Keys(gsi int) (partitionKey, sortKey string) {
-// 	panic("not implemented")
-// }
+func (r *Row) Keys(gsi int) (string, string, error) {
+	if r.Pk != "" && r.Sk != "" {
+		return r.Pk, r.Sk, nil
+	}
+	if r.Pk != "" && r.Sk == "" {
+		return r.Pk, "row", nil
+	}
+	return uuid.UUIDv4(), "row", nil
+}

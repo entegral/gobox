@@ -15,14 +15,17 @@ import (
 // DynamoDBOperations is a struct that implements the DynamoDBOperations interface.
 // It is intended to be embedded into other types to provide them with DynamoDB operations.
 type dynamoDBOperations struct {
+	// Tablename is a field you can set at runtime that will change the
+	// name of the DynamoDB table that is used for operations.
+	// It is ephemeral and will not be persisted to DynamoDB.
 	Tablename        string
-	GetItemOutput    *dynamodb.GetItemOutput
-	PutItemOutput    *dynamodb.PutItemOutput
-	DeleteItemOutput *dynamodb.DeleteItemOutput
+	GetItemOutput    *dynamodb.GetItemOutput    `dynamodbav:"-" json:"-"`
+	PutItemOutput    *dynamodb.PutItemOutput    `dynamodbav:"-" json:"-"`
+	DeleteItemOutput *dynamodb.DeleteItemOutput `dynamodbav:"-" json:"-"`
 
-	// RowData is a map of the row data. This is used to store the raw data
-	// from the dynamo response in the event the row data is needed for
-	// custom, or subsequent, unmarshalling.
+	// RowData is a map of data retrieved from DynamoDB during the last
+	// GetItem operation. This is useful for comparing the old values
+	// with the new values after a PutItem operation.
 	RowData map[string]awstypes.AttributeValue `dynamodbav:"-" json:"-"`
 }
 
@@ -79,8 +82,7 @@ func (d *dynamoDBOperations) WasGetSuccessful() bool {
 // The PutItemOutput response will be stored in the PutItemOutput field:
 // d.PutItemOutput
 func (d *dynamoDBOperations) Put(ctx context.Context, row types.Linkable) (err error) {
-	tn := d.TableName(ctx)
-	d.PutItemOutput, err = PutItemWithTablename(ctx, tn, row)
+	d.PutItemOutput, err = PutItem(ctx, row)
 	return err
 }
 

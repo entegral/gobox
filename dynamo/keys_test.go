@@ -36,7 +36,7 @@ func (b b) Keys(gsi int) (string, string, error) {
 }
 
 type testType struct {
-	DiLink[a, b]
+	DiLink[*a, *b]
 }
 
 func TestGenerateLinkKeys(t *testing.T) {
@@ -44,8 +44,8 @@ func TestGenerateLinkKeys(t *testing.T) {
 		a := a{}
 		b := b{}
 		testType := testType{}
-		testType.Entity0 = a
-		testType.Entity1 = b
+		testType.Entity0 = &a
+		testType.Entity1 = &b
 		testType.GenerateDiLinkKeys()
 		assert.Equal(t, "/e0Type(typeA)/e0pk(partionKeyA)/e1Type(typeB)/e1pk(partionKeyB)", testType.Pk)
 		assert.Equal(t, "/e0sk(sortKeyA)/e1sk(sortKeyB)", testType.Sk)
@@ -54,8 +54,8 @@ func TestGenerateLinkKeys(t *testing.T) {
 		a := a{}
 		b := b{}
 		testType := testType{}
-		testType.Entity0 = a
-		testType.Entity1 = b
+		testType.Entity0 = &a
+		testType.Entity1 = &b
 		testType.GenerateDiLinkKeys()
 		pk, sk, _ := testType.ExtractE0Keys()
 		assert.Equal(t, "/rowType(typeA)/rowPk(partionKeyA)", pk)
@@ -65,8 +65,8 @@ func TestGenerateLinkKeys(t *testing.T) {
 		a := a{}
 		b := b{}
 		testType := testType{}
-		testType.Entity0 = a
-		testType.Entity1 = b
+		testType.Entity0 = &a
+		testType.Entity1 = &b
 		testType.GenerateDiLinkKeys()
 		pk, sk := testType.ExtractE1Keys()
 		assert.Equal(t, "/rowType(typeB)/rowPk(partionKeyB)", pk)

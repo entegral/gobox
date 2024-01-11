@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/entegral/gobox/types"
 )
 
 // EntityGSI is the name of the GSI used to contain the composite
@@ -80,6 +82,19 @@ type ErrInvalidKeySegment struct {
 
 func (e ErrInvalidKeySegment) Error() string {
 	return fmt.Sprintf("invalid key segment: %s(%s)", e.label, e.value)
+}
+
+func prependWithRowType(row types.Typeable, pk string) (string, error) {
+	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return "", err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return "", err
+	}
+	pkWithTypePrefix += seg
+	return pkWithTypePrefix, nil
 }
 
 func addKeySegment(label linkLabels, value string) (string, error) {

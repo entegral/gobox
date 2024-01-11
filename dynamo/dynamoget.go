@@ -2,7 +2,6 @@ package dynamo
 
 import (
 	"context"
-	"os"
 	"reflect"
 
 	"github.com/entegral/gobox/clients"
@@ -46,7 +45,7 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
 	rcc := awstypes.ReturnConsumedCapacityNone
-	if os.Getenv("TESTING") == "true" {
+	if checkTesting() {
 		rcc = awstypes.ReturnConsumedCapacityTotal
 	}
 	out, err := client.Dynamo().GetItem(ctx, &dynamodb.GetItemInput{
