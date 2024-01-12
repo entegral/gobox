@@ -1,6 +1,56 @@
 package dynamo
 
-import "github.com/dgryski/trifles/uuid"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/dgryski/trifles/uuid"
+)
+
+// UnixTime represents a Unix timestamp in seconds.
+type UnixTime time.Time
+
+// MarshalDynamoDB converts UnixTime to a string representation for DynamoDB.
+func (t UnixTime) MarshalDynamoDB() (string, error) {
+	return time.Time(t).UTC().Format(time.RFC3339), nil
+}
+
+// UnmarshalDynamoDB converts a string representation from DynamoDB to UnixTime.
+func (t *UnixTime) UnmarshalDynamoDB(s string) error {
+	parsedTime, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		return err
+	}
+	*t = UnixTime(parsedTime)
+	return nil
+}
+
+// MarshalJSON converts UnixTime to a JSON representation.
+func (t UnixTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Time(t).Unix())
+}
+
+// UnmarshalJSON converts a JSON representation to UnixTime.
+func (t *UnixTime) UnmarshalJSON(data []byte) error {
+	var unixTime int64
+	err := json.Unmarshal(data, &unixTime)
+	if err != nil {
+		return err
+	}
+	*t = UnixTime(time.Unix(unixTime, 0))
+	return nil
+}
+
+// AddTTL adds a duration to the UnixTime value. Negative durations are
+// allowed, and will subtract from the UnixTime value.
+func (t UnixTime) AddTTL(duration time.Duration) UnixTime {
+	return UnixTime(time.Time(t).Add(duration))
+}
+
+// UpdateTTL updates the UnixTime value to the given time.
+func (t *UnixTime) UpdateTTL(newTime time.Time) {
+	*t = UnixTime(newTime)
+}
 
 // Row is a sample Keyable implementation. It is not intended to be used
 // by itself, but rather to be embedded into other types. After embedding,
@@ -20,13 +70,15 @@ type Row struct {
 	Pk5 string `dynamodbav:"pk5,omitempty" json:"pk5,omitempty"`
 	Sk5 string `dynamodbav:"sk5,omitempty" json:"sk5,omitempty"`
 	Pk6 string `dynamodbav:"pk6,omitempty" json:"pk6,omitempty"`
-	Sk6 string `dynamodbav:"sk6,omitempty" json:"sk6,omitempty"`
+
+	// TTL is the UTC time that this record will expire.
+	TTL UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
 
 	// PkShard is a field that is used
 	PkShard string `dynamodbav:"pkshard,omitempty" json:"pkshard,omitempty"`
 	// Type is the type of the row.
-	UnmarshalledType   string `dynamodbav:"type" json:"type,omitempty"`
-	dynamoDBOperations `dynamodbav:"-" json:"-"`
+	UnmarshalledType string `dynamodbav:"type" json:"type,omitempty"`
+	DBManager        `dynamodbav:"-" json:"-"`
 }
 
 // Type returns the type of the record.

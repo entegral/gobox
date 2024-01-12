@@ -174,7 +174,7 @@ func TestRow(t *testing.T) {
 		})
 	})
 	t.Run("TTL", func(t *testing.T) {
-		t.Run("it will respect the value configured on the dynamoDBOperations.TTL field", func(t *testing.T) {})
+		t.Run("it will respect the value configured on the DBManager.TTL field", func(t *testing.T) {})
 		t.Run("the value will be a pointer to a time.Time instance", func(t *testing.T) {})
 		t.Run("the field will only be marshalled to json if the field is set", func(t *testing.T) {})
 		t.Run("the field will only be marshalled to a dynamo map if the field is set", func(t *testing.T) {})

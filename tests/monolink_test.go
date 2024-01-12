@@ -54,7 +54,7 @@ func TestMonoLink(t *testing.T) {
 				t.Error(err)
 			}
 			assert.Equal(t, true, contact.WasPutSuccessful())
-			assert.Equal(t, float64(2), *contact.PutItemOutput.ConsumedCapacity.CapacityUnits)
+			assert.Equal(t, float64(3), *contact.PutItemOutput.ConsumedCapacity.CapacityUnits)
 		})
 		t.Run("get link from base", func(t *testing.T) {
 			// put a user for the test
@@ -82,15 +82,15 @@ func TestMonoLink(t *testing.T) {
 				Name:  name,
 				Age:   age,
 			}
-			contact := &exampleLib.ContactInfo{
-				MonoLink: dynamo.NewMonoLink(user),
-			}
+			contact := &exampleLib.ContactInfo{}
+			contact.MonoLink = dynamo.NewMonoLink(user)
+
 			err := contact.Delete(ctx, contact)
 			if err != nil {
 				t.Error(err)
 			}
 			assert.NotEqual(t, nil, contact.DeleteItemOutput)
-			assert.Equal(t, float64(2), *contact.DeleteItemOutput.ConsumedCapacity.CapacityUnits)
+			assert.Equal(t, float64(3), *contact.DeleteItemOutput.ConsumedCapacity.CapacityUnits)
 		})
 	})
 }
