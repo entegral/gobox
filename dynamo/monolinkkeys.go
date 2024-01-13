@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
+	"unicode"
 
 	"github.com/entegral/gobox/types"
 )
@@ -99,11 +101,11 @@ func prependWithRowType(row types.Typeable, pk string) (string, error) {
 
 func addKeySegment(label linkLabels, value string) (string, error) {
 	// Check if label or value contains characters that could affect the regex
-	// if strings.ContainsAny(string(label), "()") || strings.ContainsAny(value, "()") || strings.Contains(value, "\n") {
-	// 	return "", ErrInvalidKeySegment{string(label), value}
-	// }
-	if label == "" {
-		return "", errors.New("label must not be empty")
+	if len(value) == 0 || strings.ContainsAny(string(label), "()") || containsObscureWhitespace(value) {
+		return "", ErrInvalidKeySegment{string(label), value}
+	}
+	if !label.IsValidLabel() {
+		return "", ErrInvalidKeySegment{string(label), value}
 	}
 
 	// Check if value matches any linkLabel
@@ -114,10 +116,22 @@ func addKeySegment(label linkLabels, value string) (string, error) {
 	return fmt.Sprintf("/%s(%s)", label, value), nil
 }
 
+func containsObscureWhitespace(value string) bool {
+	for _, r := range value {
+		if unicode.IsSpace(r) && !unicode.IsPrint(r) {
+			return true
+		}
+	}
+	return false
+}
+
 // extractKeys extracts the pk and sk values from a given string.
 func extractKeys(label linkLabels, str string) string {
-	// Define regular expressions for pk and sk
+	if !label.IsValidLabel() {
+		return "invalid label"
+	}
 
+	// Define regular expressions for pk and sk
 	// regexFormat - where %d is the entity number and %s either Pk or Sk
 	regexFormat := `(?m)%s\(([^)]+)\)`
 

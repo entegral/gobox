@@ -1,6 +1,8 @@
 package dynamo
 
-import "errors"
+import (
+	"errors"
+)
 
 type linkLabels string
 
@@ -8,24 +10,37 @@ func (l linkLabels) String() string {
 	return string(l)
 }
 
-func (ll linkLabels) IsValidValue(value string) error {
-	labels := []linkLabels{
-		pk,
-		sk,
-		entity0pk,
-		entity0sk,
-		entity0Type,
-		rowType,
-		rowPk,
-		rowSk,
-		entity2pk,
-		entity2sk,
-		entity2Type,
-		entity1pk,
-		entity1sk,
-		entity1Type,
+var validLabels = []linkLabels{
+	pk,
+	sk,
+	entity0pk,
+	entity0sk,
+	entity0Type,
+	rowType,
+	rowPk,
+	rowSk,
+	entity2pk,
+	entity2sk,
+	entity2Type,
+	entity1pk,
+	entity1sk,
+	entity1Type,
+}
+
+func (ll linkLabels) IsValidLabel() bool {
+	if ll == "" {
+		return false
 	}
-	for _, label := range labels {
+	for _, label := range validLabels {
+		if label.String() == ll.String() {
+			return true
+		}
+	}
+	return false
+}
+
+func (ll linkLabels) IsValidValue(value string) error {
+	for _, label := range validLabels {
 		if label.String() == value {
 			return errors.New("value must not match any linkLabel")
 		}

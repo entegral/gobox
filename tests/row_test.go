@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -16,8 +15,8 @@ import (
 func TestRow(t *testing.T) {
 	// init
 
-	os.Setenv("TABLENAME", "arctica")
-	os.Setenv("GOBOX_TESTING", "true") // this will ensure return consumed capacity values are returned
+	// os.Setenv("TABLENAME", "arctica")
+	// os.Setenv("GOBOX_TESTING", "true") // this will ensure return consumed capacity values are returned
 	ctx := context.Background()
 	preclear := &exampleLib.User{
 		Email: "testEmail@gmail.com",
