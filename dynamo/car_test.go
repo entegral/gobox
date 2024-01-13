@@ -1,17 +1,15 @@
-package exampleLib
+package dynamo
 
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/entegral/gobox/dynamo"
 )
 
 // CarDetails is a map of details about a car
 type CarDetails map[string]interface{}
 
 type Car struct {
-	dynamo.Row
+	Row
 	Make    string      `json:"make"`
 	Model   string      `json:"model"`
 	Year    int         `json:"year"`

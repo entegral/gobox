@@ -1,4 +1,4 @@
-package exampleLib
+package dynamo
 
 import (
 	"context"

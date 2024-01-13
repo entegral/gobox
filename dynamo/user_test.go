@@ -1,9 +1,7 @@
-package exampleLib
-
-import "github.com/entegral/gobox/dynamo"
+package dynamo
 
 type User struct {
-	dynamo.Row
+	Row
 	Email string
 	Name  string
 	Age   int
@@ -31,7 +29,7 @@ func CreateUser(email string) *User {
 }
 
 type ContactInfo struct {
-	*dynamo.MonoLink[*User]
+	*MonoLink[*User]
 	Phone string
 	Addr  string
 }

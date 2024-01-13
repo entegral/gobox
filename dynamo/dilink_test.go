@@ -1,4 +1,4 @@
-package tests
+package dynamo
 
 import (
 	"context"
@@ -6,8 +6,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/entegral/gobox/dynamo"
-	"github.com/entegral/gobox/examples/exampleLib"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +20,7 @@ func TestDiLink(t *testing.T) {
 	const email = "testDiLinkEmail@gmail.com"
 	const name = "TestDiLinkName"
 	const age = 33
-	preClearedUser := &exampleLib.User{
+	preClearedUser := &User{
 		Email: email,
 		Name:  name,
 		Age:   age,
@@ -35,11 +33,11 @@ func TestDiLink(t *testing.T) {
 	const carmake = "TestDiLinkMake"
 	const model = "TestDiLinkModel"
 	const year = 2022
-	var carDetails = exampleLib.CarDetails{
+	var carDetails = CarDetails{
 		"doors": float64(4),
 		"color": "black",
 	}
-	preClearedCar := &exampleLib.Car{
+	preClearedCar := &Car{
 		Make:    carmake,
 		Model:   model,
 		Year:    year,
@@ -50,8 +48,8 @@ func TestDiLink(t *testing.T) {
 		t.Error(err)
 	}
 	// ensure we start with an empty slate
-	pinkSlip := &exampleLib.PinkSlip{
-		DiLink: *dynamo.NewDiLink(preClearedUser, preClearedCar),
+	pinkSlip := &PinkSlip{
+		DiLink: *NewDiLink(preClearedUser, preClearedCar),
 	}
 	err = pinkSlip.Delete(ctx, pinkSlip)
 	if err != nil {
@@ -60,21 +58,21 @@ func TestDiLink(t *testing.T) {
 
 	// generate some minimal entities for testing
 	// these only have the minimum required fields to generate the composite keys
-	minimalUser := &exampleLib.User{
+	minimalUser := &User{
 		Email: email,
 	}
-	minimalCar := &exampleLib.Car{
+	minimalCar := &Car{
 		Make:  carmake,
 		Model: model,
 		Year:  year,
 	}
 
 	// create a second car for testing
-	car2Details := exampleLib.CarDetails{
+	car2Details := CarDetails{
 		"doors": float64(2),
 		"color": "red",
 	}
-	car2 := &exampleLib.Car{
+	car2 := &Car{
 		Make:    "TestDiLinkMake2",
 		Model:   "TestDiLinkModel2",
 		Year:    2023,
@@ -132,8 +130,8 @@ func TestDiLink(t *testing.T) {
 			})
 		})
 		t.Run("LoadEntities", func(t *testing.T) {
-			pinkSlip := &exampleLib.PinkSlip{
-				DiLink: *dynamo.NewDiLink(minimalUser, minimalCar),
+			pinkSlip := &PinkSlip{
+				DiLink: *NewDiLink(minimalUser, minimalCar),
 			}
 			t.Run("LoadEntity0", func(t *testing.T) {
 				// now the pink slip has been created locally with only enough info to generate the composite keys
@@ -161,8 +159,8 @@ func TestDiLink(t *testing.T) {
 			})
 			t.Run("LoadEntities", func(t *testing.T) {
 				// reset the pink slip
-				pinkSlip = &exampleLib.PinkSlip{
-					DiLink: *dynamo.NewDiLink(minimalUser, minimalCar),
+				pinkSlip = &PinkSlip{
+					DiLink: *NewDiLink(minimalUser, minimalCar),
 				}
 				userLoaded, carLoaded, err := pinkSlip.LoadEntities(ctx)
 				assert.Equal(t, nil, err)
@@ -180,8 +178,8 @@ func TestDiLink(t *testing.T) {
 		t.Run("FindEntities", func(t *testing.T) {
 			t.Run("LoadEntity0s", func(t *testing.T) {
 				// start with a fresh pink slip
-				pinkSlip := &exampleLib.PinkSlip{
-					DiLink: *dynamo.NewDiLink(minimalUser, minimalCar),
+				pinkSlip := &PinkSlip{
+					DiLink: *NewDiLink(minimalUser, minimalCar),
 				}
 				t.Run("Should return an array of cars when pink slips do exist", func(t *testing.T) {
 					// now the pink slip has been created locally with only enough info to generate the composite keys
@@ -249,8 +247,8 @@ func TestDiLink(t *testing.T) {
 					if err != nil {
 						t.Error(err)
 					}
-					pinkSlip2 := &exampleLib.PinkSlip{
-						DiLink: *dynamo.NewDiLink(preClearedUser, car2),
+					pinkSlip2 := &PinkSlip{
+						DiLink: *NewDiLink(preClearedUser, car2),
 					}
 					err = pinkSlip2.Put(ctx, pinkSlip2)
 					if err != nil {

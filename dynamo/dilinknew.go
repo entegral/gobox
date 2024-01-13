@@ -38,28 +38,3 @@ func NewDiLink[T0, T1 types.Linkable](entity0 T0, entity1 T1) *DiLink[T0, T1] {
 	link.GenerateDiLinkKeys()
 	return &link
 }
-
-// // CheckDiLink creates a new DiLink instance from the entities and attempts to load them from dynamo.
-// // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
-// func checkDiLink[T0, T1 types.Linkable](ctx context.Context, link *DiLink[T0, T1]) (linkExists bool, err error) {
-// 	// load the entities
-// 	loaded0, err := link.Get(ctx, link.Entity0)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	if !loaded0 {
-// 		return false, ErrEntityNotFound[T0]{Entity: link.Entity0}
-// 	}
-// 	loaded1, err := link.Get(ctx, link.Entity1)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	if !loaded1 {
-// 		return false, ErrEntityNotFound[T1]{Entity: link.Entity1}
-// 	}
-// 	linkExists, err = link.Get(ctx, link)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	return linkExists, nil
-// }

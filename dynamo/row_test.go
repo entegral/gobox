@@ -1,4 +1,4 @@
-package tests
+package dynamo
 
 import (
 	"context"
@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/entegral/gobox/dynamo"
-	"github.com/entegral/gobox/examples/exampleLib"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +16,7 @@ func TestRow(t *testing.T) {
 	// os.Setenv("TABLENAME", "arctica")
 	// os.Setenv("GOBOX_TESTING", "true") // this will ensure return consumed capacity values are returned
 	ctx := context.Background()
-	preclear := &exampleLib.User{
+	preclear := &User{
 		Email: "testEmail@gmail.com",
 		Name:  "TestName",
 		Age:   30,
@@ -35,7 +33,7 @@ func TestRow(t *testing.T) {
 			var timeCapsuleGUID string
 			t.Run("CRUD methods used in this repo rely on the Pk value being set", func(t *testing.T) {
 				type TimeCapsule struct {
-					dynamo.Row
+					Row
 					Name string `dynamo:"name"` // Name of the TimeCapsule
 				}
 				t.Run("this tool differs than most beause its methods must accept the caller as an argument", func(t *testing.T) {
@@ -90,7 +88,7 @@ func TestRow(t *testing.T) {
 
 			t.Run("Now we will implement our object's own Keyable interface", func(t *testing.T) {
 				// this allows us to override the default GUID behavior of the Row type
-				ktc := &exampleLib.KeyableTimeCapsule{
+				ktc := &KeyableTimeCapsule{
 					Name:     "testName",
 					Location: "testLocation",
 				}
@@ -118,7 +116,7 @@ func TestRow(t *testing.T) {
 				// the example User type implements a Keyable function that will use the Email field as the pk
 				// and a static "info" string as the sk. Using a constructor function is a good way to ensure
 				// that the fields required for the composite key are set.
-				user := exampleLib.CreateUser(testUserEmail)
+				user := CreateUser(testUserEmail)
 				user.Name = testUserName
 				user.Age = testUserAge
 
@@ -130,7 +128,7 @@ func TestRow(t *testing.T) {
 				assert.Equal(t, float64(2), *user.PutItemOutput.ConsumedCapacity.CapacityUnits)
 			})
 			t.Run("get", func(t *testing.T) {
-				u := exampleLib.CreateUser(testUserEmail)
+				u := CreateUser(testUserEmail)
 
 				loaded, err := u.Get(ctx, u)
 				if err != nil {
@@ -144,7 +142,7 @@ func TestRow(t *testing.T) {
 				assert.Equal(t, float64(0.5), *u.GetItemOutput.ConsumedCapacity.CapacityUnits)
 			})
 			t.Run("delete", func(t *testing.T) {
-				u := exampleLib.CreateUser(testUserEmail)
+				u := CreateUser(testUserEmail)
 				err = u.Delete(ctx, u)
 				if err != nil {
 					t.Error(err)
@@ -185,14 +183,14 @@ func TestRow(t *testing.T) {
 			testGUID := "ttlTestGUID1"
 			// lets test this with a TimeCapsule struct
 			type TimeCapsule struct {
-				dynamo.Row
+				Row
 				Name string `dynamo:"name"` // Name of the TimeCapsule
 			}
 			tc := &TimeCapsule{
 				Name: "testName",
 			}
 			tc.Pk = testGUID
-			tc.TTL = dynamo.NewTTL(expectedTTL)
+			tc.TTL = NewTTL(expectedTTL)
 			err := tc.Put(ctx, tc)
 			if err != nil {
 				t.Error(err)
@@ -215,7 +213,7 @@ func TestRow(t *testing.T) {
 			testGUID := "ttlTestGUID2"
 			// lets test this with a TimeCapsule struct
 			type TimeCapsule struct {
-				dynamo.Row
+				Row
 				Name string `dynamo:"name"` // Name of the TimeCapsule
 			}
 			tc := &TimeCapsule{
@@ -252,7 +250,7 @@ func TestRow(t *testing.T) {
 		t.Run("DynamoRow will implement the keyable interface", func(t *testing.T) {
 			// lets test this with a TimeCapsule struct
 			type TimeCapsule struct {
-				dynamo.Row
+				Row
 				Name string `dynamo:"name"` // Name of the TimeCapsule
 			}
 

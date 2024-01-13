@@ -51,22 +51,3 @@ func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client
 		ReturnConsumedCapacity: rcc,
 	})
 }
-
-// DeleteItemWithClient deletes a row from DynamoDB using the provided client
-// The row must implement the Keyable interface
-func DeleteItemWithClient(ctx context.Context, client *clients.Client, row types.Keyable) (*dynamodb.DeleteItemOutput, error) {
-	pk, sk, err := row.Keys(0)
-	if err != nil {
-		return nil, err
-	}
-	key := map[string]awstypes.AttributeValue{
-		"pk": &awstypes.AttributeValueMemberS{Value: pk},
-		"sk": &awstypes.AttributeValueMemberS{Value: sk},
-	}
-	tn := types.CheckTableable(ctx, row)
-	return client.Dynamo().DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName:    &tn,
-		Key:          key,
-		ReturnValues: awstypes.ReturnValueAllOld,
-	})
-}

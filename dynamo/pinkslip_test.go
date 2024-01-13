@@ -1,9 +1,7 @@
-package exampleLib
+package dynamo
 
 import (
 	"context"
-
-	"github.com/entegral/gobox/dynamo"
 )
 
 // PinkSlip is a link between a user and a car, along with representing the date of purchase
@@ -14,9 +12,9 @@ import (
 // deterministically generate the primary key and sort key for the link. This maintains
 // the entropy of the link, and allows for easy querying of the link.
 type PinkSlip struct {
-	dynamo.DiLink[*User, *Car]
-	DateOfPurchase string `dynamodbav:"dateOfPurchase,omitempty" json:"dateOfPurchase,omitempty`
-	VIN            string `dynamodbav:"vin,omitempty" json:"vin,omitempty`
+	DiLink[*User, *Car]
+	DateOfPurchase string `dynamodbav:"dateOfPurchase,omitempty" json:"dateOfPurchase,omitempty"`
+	VIN            string `dynamodbav:"vin,omitempty" json:"vin,omitempty"`
 }
 
 func (p *PinkSlip) Type() string {

@@ -1,6 +1,4 @@
-package exampleLib
-
-import "github.com/entegral/gobox/dynamo"
+package dynamo
 
 type Buyer struct {
 	*User
@@ -19,7 +17,7 @@ func (s *Seller) Type() string {
 }
 
 type Sale struct {
-	*dynamo.TriLink[*Buyer, *Car, *Seller]
+	*TriLink[*Buyer, *Car, *Seller]
 	// the old owner of the car
 	Date string
 }

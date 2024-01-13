@@ -1,10 +1,8 @@
-package exampleLib
-
-import "github.com/entegral/gobox/dynamo"
+package dynamo
 
 // KeyableTimeCapsule implements the Keyable interface and will use the Location and Name fields to generate the pk and sk
 type KeyableTimeCapsule struct {
-	dynamo.Row
+	Row
 	Name     string `dynamo:"name"`     // Name of the TimeCapsule
 	Location string `dynamo:"location"` // Location of the TimeCapsule
 }

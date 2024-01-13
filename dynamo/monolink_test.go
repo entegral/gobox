@@ -1,12 +1,10 @@
-package tests
+package dynamo
 
 import (
 	"context"
 	"os"
 	"testing"
 
-	"github.com/entegral/gobox/dynamo"
-	"github.com/entegral/gobox/examples/exampleLib"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +16,7 @@ func TestMonoLink(t *testing.T) {
 	email := "testEmail@gmail.com"
 	name := "TestName"
 	age := 30
-	preClearUser := &exampleLib.User{
+	preClearUser := &User{
 		Email: email,
 		Name:  name,
 		Age:   age,
@@ -35,7 +33,7 @@ func TestMonoLink(t *testing.T) {
 	t.Run("MonoLink", func(t *testing.T) {
 		t.Run("put", func(t *testing.T) {
 			// put a user for the test
-			user := &exampleLib.User{
+			user := &User{
 				Email: email,
 				Name:  name,
 				Age:   age,
@@ -44,8 +42,8 @@ func TestMonoLink(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			contact := &exampleLib.ContactInfo{
-				MonoLink: dynamo.NewMonoLink(user),
+			contact := &ContactInfo{
+				MonoLink: NewMonoLink(user),
 				Phone:    phone,
 				Addr:     addr,
 			}
@@ -58,13 +56,13 @@ func TestMonoLink(t *testing.T) {
 		})
 		t.Run("get link from base", func(t *testing.T) {
 			// put a user for the test
-			user := &exampleLib.User{
+			user := &User{
 				Email: email,
 				Name:  name,
 				Age:   age,
 			}
-			contact := &exampleLib.ContactInfo{
-				MonoLink: dynamo.NewMonoLink(user),
+			contact := &ContactInfo{
+				MonoLink: NewMonoLink(user),
 			}
 			loaded, err := contact.Get(ctx, contact)
 			if err != nil {
@@ -77,13 +75,13 @@ func TestMonoLink(t *testing.T) {
 		})
 		t.Run("delete link", func(t *testing.T) {
 			// put a user for the test
-			user := &exampleLib.User{
+			user := &User{
 				Email: email,
 				Name:  name,
 				Age:   age,
 			}
-			contact := &exampleLib.ContactInfo{}
-			contact.MonoLink = dynamo.NewMonoLink(user)
+			contact := &ContactInfo{}
+			contact.MonoLink = NewMonoLink(user)
 
 			err := contact.Delete(ctx, contact)
 			if err != nil {

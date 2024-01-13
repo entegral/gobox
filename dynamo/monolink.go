@@ -1,9 +1,6 @@
 package dynamo
 
 import (
-	"context"
-
-	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
 )
 
@@ -18,33 +15,4 @@ type MonoLink[T0 types.Linkable] struct {
 	E0sk string `dynamodbav:"e0sk" json:"e0sk,omitempty"`
 
 	Entity0 T0 `dynamodbav:"-" json:"entity0,omitempty"`
-}
-
-func (m *MonoLink[T0]) LoadEntities(ctx context.Context, clients *clients.Client) (e0Loaded bool, e1Loaded bool, err error) {
-	e0Loaded, err = m.LoadEntity0(ctx)
-	if err != nil {
-		return e0Loaded, false, err
-	}
-	return e0Loaded, e1Loaded, nil
-}
-
-// Type returns the type of the record.
-func (r *MonoLink[T0]) Type() string {
-	if r.UnmarshalledType == "" {
-		return "row"
-	}
-	return r.UnmarshalledType
-}
-
-// Link is a generic method to establish a connection between the two entities. By default
-// it will establish a one-to-one relationship between the two entities using the primary keys.
-// If the relation is set to OneToMany, then it will establish a one-to-many relationship
-// between the two entities where Entity0 is the "one" and Entity1 is the "many".
-func (m *MonoLink[T0]) Link(ctx context.Context, row types.Linkable) error {
-	return m.Put(ctx, row)
-}
-
-// Unlink method to remove the connection between the two entities.
-func (m *MonoLink[T0]) Unlink(ctx context.Context, row types.Linkable) error {
-	return m.Delete(ctx, row)
 }
