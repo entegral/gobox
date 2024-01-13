@@ -2,54 +2,76 @@ package dynamo
 
 import (
 	"encoding/json"
+	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/dgryski/trifles/uuid"
 )
 
-// UnixTime represents a Unix timestamp in seconds.
-type UnixTime time.Time
-
-// MarshalDynamoDB converts UnixTime to a string representation for DynamoDB.
-func (t UnixTime) MarshalDynamoDB() (string, error) {
-	return time.Time(t).UTC().Format(time.RFC3339), nil
+func NewTTL(t time.Time) *UnixTime {
+	return &UnixTime{t}
 }
 
-// UnmarshalDynamoDB converts a string representation from DynamoDB to UnixTime.
-func (t *UnixTime) UnmarshalDynamoDB(s string) error {
-	parsedTime, err := time.Parse(time.RFC3339, s)
-	if err != nil {
-		return err
+// UnixTime represents a Unix timestamp in seconds.
+type UnixTime struct {
+	time.Time
+}
+
+// MarshalDynamoDBAttributeValue implements the dynamodbattribute.Marshaler interface.
+func (t UnixTime) MarshalDynamoDBAttributeValue() (types.AttributeValue, error) {
+	if t.Time.IsZero() {
+		return nil, nil
 	}
-	*t = UnixTime(parsedTime)
+	return &types.AttributeValueMemberN{
+		Value: strconv.FormatInt(t.UTC().Unix(), 10),
+	}, nil
+}
+
+// UnmarshalDynamoDBAttributeValue implements the dynamodbattribute.Unmarshaler interface.
+func (t *UnixTime) UnmarshalDynamoDBAttributeValue(av types.AttributeValue) error {
+	if v, ok := av.(*types.AttributeValueMemberN); ok {
+		unixTime, err := strconv.ParseInt(v.Value, 10, 64)
+		if err != nil {
+			return err
+		}
+		t.Time = time.Unix(unixTime, 0)
+	}
 	return nil
 }
 
 // MarshalJSON converts UnixTime to a JSON representation.
 func (t UnixTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(time.Time(t).Unix())
+	if t.Time.IsZero() {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(t.UTC().Format(time.RFC3339))
 }
 
 // UnmarshalJSON converts a JSON representation to UnixTime.
 func (t *UnixTime) UnmarshalJSON(data []byte) error {
-	var unixTime int64
-	err := json.Unmarshal(data, &unixTime)
+	var timestamp string
+	err := json.Unmarshal(data, &timestamp)
 	if err != nil {
 		return err
 	}
-	*t = UnixTime(time.Unix(unixTime, 0))
+	parsedTime, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		return err
+	}
+	t.Time = parsedTime
 	return nil
 }
 
 // AddTTL adds a duration to the UnixTime value. Negative durations are
 // allowed, and will subtract from the UnixTime value.
 func (t UnixTime) AddTTL(duration time.Duration) UnixTime {
-	return UnixTime(time.Time(t).Add(duration))
+	return UnixTime{t.Add(duration)}
 }
 
 // UpdateTTL updates the UnixTime value to the given time.
 func (t *UnixTime) UpdateTTL(newTime time.Time) {
-	*t = UnixTime(newTime)
+	t.Time = newTime
 }
 
 // Row is a sample Keyable implementation. It is not intended to be used
@@ -72,7 +94,7 @@ type Row struct {
 	Pk6 string `dynamodbav:"pk6,omitempty" json:"pk6,omitempty"`
 
 	// TTL is the UTC time that this record will expire.
-	TTL UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
+	TTL *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
 
 	// PkShard is a field that is used
 	PkShard string `dynamodbav:"pkshard,omitempty" json:"pkshard,omitempty"`

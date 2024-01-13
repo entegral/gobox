@@ -12,7 +12,6 @@ type CarDetails map[string]interface{}
 
 type Car struct {
 	dynamo.Row
-	GUID    string      `json:"guid"`
 	Make    string      `json:"make"`
 	Model   string      `json:"model"`
 	Year    int         `json:"year"`

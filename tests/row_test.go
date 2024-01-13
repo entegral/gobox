@@ -2,8 +2,10 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/entegral/gobox/dynamo"
@@ -13,6 +15,7 @@ import (
 
 func TestRow(t *testing.T) {
 	// init
+
 	os.Setenv("TABLENAME", "arctica")
 	os.Setenv("GOBOX_TESTING", "true") // this will ensure return consumed capacity values are returned
 	ctx := context.Background()
@@ -174,8 +177,65 @@ func TestRow(t *testing.T) {
 		})
 	})
 	t.Run("TTL", func(t *testing.T) {
-		t.Run("it will respect the value configured on the DBManager.TTL field", func(t *testing.T) {})
-		t.Run("the value will be a pointer to a time.Time instance", func(t *testing.T) {})
+		expectedTTL := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+		var expectedDynamoTTL int64 = 1577836800
+		t.Run("1/1/2020 to unix", func(t *testing.T) {
+			assert.Equal(t, expectedDynamoTTL, expectedTTL.Unix())
+		})
+		t.Run("the DBManager.TTL field will marshal into an int", func(t *testing.T) {
+			testGUID := "ttlTestGUID1"
+			// lets test this with a TimeCapsule struct
+			type TimeCapsule struct {
+				dynamo.Row
+				Name string `dynamo:"name"` // Name of the TimeCapsule
+			}
+			tc := &TimeCapsule{
+				Name: "testName",
+			}
+			tc.Pk = testGUID
+			tc.TTL = dynamo.NewTTL(expectedTTL)
+			err := tc.Put(ctx, tc)
+			if err != nil {
+				t.Error(err)
+			}
+			loadTc := &TimeCapsule{}
+			loadTc.Pk = testGUID
+			_, err = loadTc.Get(ctx, loadTc)
+			if err != nil {
+				t.Error(err)
+			}
+			ttlAV := loadTc.RowData["ttl"]
+			ttl, ok := ttlAV.(*types.AttributeValueMemberN)
+			if !ok {
+				t.Error("ttl should be a number")
+			}
+			assert.Equal(t, fmt.Sprintf("%d", expectedDynamoTTL), ttl.Value)
+			assert.Equal(t, expectedTTL.Unix(), loadTc.TTL.Unix())
+		})
+		t.Run("the value will not be marshalled to dynamo if unset", func(t *testing.T) {
+			testGUID := "ttlTestGUID2"
+			// lets test this with a TimeCapsule struct
+			type TimeCapsule struct {
+				dynamo.Row
+				Name string `dynamo:"name"` // Name of the TimeCapsule
+			}
+			tc := &TimeCapsule{
+				Name: "testName",
+			}
+			tc.Pk = testGUID
+			err := tc.Put(ctx, tc)
+			if err != nil {
+				t.Error(err)
+			}
+			loadTc := &TimeCapsule{}
+			loadTc.Pk = testGUID
+			_, err = loadTc.Get(ctx, loadTc)
+			if err != nil {
+				t.Error(err)
+			}
+			assert.Nil(t, loadTc.TTL)
+			// tc.Delete(ctx, tc)
+		})
 		t.Run("the field will only be marshalled to json if the field is set", func(t *testing.T) {})
 		t.Run("the field will only be marshalled to a dynamo map if the field is set", func(t *testing.T) {})
 	})

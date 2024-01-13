@@ -15,8 +15,8 @@ import (
 // the entropy of the link, and allows for easy querying of the link.
 type PinkSlip struct {
 	dynamo.DiLink[*User, *Car]
-	DateOfPurchase string
-	VIN            string
+	DateOfPurchase string `dynamodbav:"dateOfPurchase,omitempty" json:"dateOfPurchase,omitempty`
+	VIN            string `dynamodbav:"vin,omitempty" json:"vin,omitempty`
 }
 
 func (p *PinkSlip) Type() string {
