@@ -9,8 +9,9 @@ import (
 	"github.com/dgryski/trifles/uuid"
 )
 
-func NewTTL(t time.Time) *UnixTime {
-	return &UnixTime{t}
+func (r *Row) SetTTL(t time.Time) *UnixTime {
+	r.TTL = &UnixTime{t}
+	return r.TTL
 }
 
 // UnixTime represents a Unix timestamp in seconds.
@@ -65,8 +66,8 @@ func (t *UnixTime) UnmarshalJSON(data []byte) error {
 
 // AddTTL adds a duration to the UnixTime value. Negative durations are
 // allowed, and will subtract from the UnixTime value.
-func (t UnixTime) AddTTL(duration time.Duration) UnixTime {
-	return UnixTime{t.Add(duration)}
+func (t UnixTime) Add(duration time.Duration) UnixTime {
+	return UnixTime{t.Time.Add(duration)}
 }
 
 // UpdateTTL updates the UnixTime value to the given time.

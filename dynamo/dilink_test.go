@@ -91,7 +91,7 @@ func TestDiLink(t *testing.T) {
 					if err == nil {
 						t.Error("expected error")
 					}
-					assert.Equal(t, "user not found", err.Error())
+					assert.Contains(t, err.Error(), "item not found:")
 				})
 				t.Run("entity1 not found error", func(t *testing.T) {
 					// create the user now
@@ -103,7 +103,7 @@ func TestDiLink(t *testing.T) {
 					if err == nil {
 						t.Error("expected error")
 					}
-					assert.Equal(t, "car not found", err.Error())
+					assert.Contains(t, err.Error(), "item not found:")
 				})
 			})
 			t.Run("Should not return an error", func(t *testing.T) {
@@ -114,7 +114,7 @@ func TestDiLink(t *testing.T) {
 				}
 				t.Run("Should return false when the record isn't in dynamo", func(t *testing.T) {
 					linkExists, err := pinkSlip.CheckLink(ctx, pinkSlip, preClearedUser, preClearedCar)
-					assert.Equal(t, nil, err)
+					assert.IsType(t, &ErrItemNotFound{}, err)
 					assert.Equal(t, false, linkExists)
 				})
 				t.Run("should return true when the record is in dynamo", func(t *testing.T) {
@@ -216,11 +216,8 @@ func TestDiLink(t *testing.T) {
 					// we should get a similar result here as we did above
 					// now we should get an empty array
 					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
-					if err != nil {
-						t.Error(err)
-					}
 					t.Log("entities:", entities)
-					assert.Equal(t, nil, err)
+					assert.IsType(t, &ErrEntityNotFound[*Car]{}, err)
 					assert.Equal(t, 0, len(entities))
 				})
 				t.Run("Should return an array of cars when pink slips do exist", func(t *testing.T) {
@@ -229,17 +226,22 @@ func TestDiLink(t *testing.T) {
 					if err != nil {
 						t.Error(err)
 					}
-					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
+					err = preClearedCar.Put(ctx, preClearedCar)
 					if err != nil {
 						t.Error(err)
 					}
+					err = car2.Put(ctx, car2)
+					if err != nil {
+						t.Error(err)
+					}
+					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
 					t.Log("entities:", entities)
-					assert.Equal(t, nil, err)
-					assert.Equal(t, 1, len(entities))
-					assert.Equal(t, preClearedCar.Make, entities[0].Make)
-					assert.Equal(t, preClearedCar.Model, entities[0].Model)
-					assert.Equal(t, preClearedCar.Year, entities[0].Year)
-					assert.Equal(t, preClearedCar.Details, entities[0].Details)
+					assert.Nil(t, err)
+					assert.Equal(t, 2, len(entities))
+					assert.Equal(t, preClearedCar.Make, entities[1].Make)
+					assert.Equal(t, preClearedCar.Model, entities[1].Model)
+					assert.Equal(t, preClearedCar.Year, entities[1].Year)
+					assert.Equal(t, preClearedCar.Details, entities[1].Details)
 				})
 				t.Run("Should return an array of cars when multiple pink slips do exist", func(t *testing.T) {
 

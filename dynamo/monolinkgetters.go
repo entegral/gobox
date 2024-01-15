@@ -44,28 +44,8 @@ func (m *MonoLink[T0]) LoadEntity0(ctx context.Context) (bool, error) {
 }
 
 // findLinkRowsByEntity0 is a generic method to query for a list of rows based on the Entity0.
-func findLinkRowsByEntity0[T0 ttypes.Linkable](ctx context.Context, e0 T0, linkWrapper ttypes.Typeable) ([]map[string]types.AttributeValue, error) {
-	client := clients.GetDefaultClient(ctx)
-	return findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI, linkWrapper)
-}
-
-// FindByEntity1 is a generic method to query for a list of links based on the Entity1.
-func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
-	rows, err := findLinkRowsByEntity0[T0](ctx, e0, linkWrapper)
-	if err != nil {
-		return nil, err
-	}
-	var links []CustomLinkType
-	for _, item := range rows {
-		var link CustomLinkType
-		if err := attributevalue.UnmarshalMap(item, &link); err != nil {
-			return nil, err
-		}
-		// if err := validateDynamoRowType[CustomLinkType](item, link); err == nil {
-		links = append(links, link)
-		// }
-	}
-	return links, nil
+func findLinkRowsByEntity0[T0 ttypes.Linkable](ctx context.Context, clients *clients.Client, e0 T0, linkWrapper ttypes.Typeable) ([]map[string]types.AttributeValue, error) {
+	return findLinkRowsByEntityGSI[T0](ctx, clients, e0, Entity0GSI, linkWrapper)
 }
 
 // findLinkRowsByEntityGSI is a generic method to query for a list of rows based on the Entity1.

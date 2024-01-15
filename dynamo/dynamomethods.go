@@ -125,7 +125,7 @@ func (e ErrSQSMessageEmpty) Error() string {
 // LoadFromMessage unmarshals an SQS message into a Row and then loads the full item from DynamoDB.
 func (d *DBManager) LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error) {
 	if message.Body == nil || *message.Body == "" {
-		return false, ErrSQSMessageEmpty{Message: message}
+		return false, &ErrSQSMessageEmpty{Message: message}
 	}
 	// Unmarshal the message body into the provided Row type
 	if err := json.Unmarshal([]byte(*message.Body), row); err != nil {

@@ -190,7 +190,7 @@ func TestRow(t *testing.T) {
 				Name: "testName",
 			}
 			tc.Pk = testGUID
-			tc.TTL = NewTTL(expectedTTL)
+			tc.SetTTL(expectedTTL)
 			err := tc.Put(ctx, tc)
 			if err != nil {
 				t.Error(err)

@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/entegral/gobox/clients"
@@ -57,7 +58,7 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 		return nil, err
 	}
 	if out.Item == nil {
-		return nil, nil
+		return out, &ErrItemNotFound{Row: row}
 	}
 
 	// var newRow T
@@ -82,4 +83,18 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 		}
 	}
 	return out, nil
+}
+
+type ErrItemNotFound struct {
+	Row types.Linkable
+}
+
+// Error implements the error interface and will
+// return the row type and keys.
+func (e ErrItemNotFound) Error() string {
+	pk, sk, err := e.Row.Keys(0)
+	if err != nil {
+		return fmt.Sprintf("item not found: %s with Pk: %s and Sk: %s, error: %v", e.Row.Type(), pk, sk, err)
+	}
+	return fmt.Sprintf("item not found: %s with Pk: %s and Sk: %s", e.Row.Type(), pk, sk)
 }
