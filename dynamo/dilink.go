@@ -39,15 +39,14 @@ func (r *DiLink[T0, T1]) Type() string {
 	return r.UnmarshalledType
 }
 
-// Link is a generic method to establish a connection between the two entities. By default
-// it will establish a one-to-one relationship between the two entities using the primary keys.
-// If the relation is set to OneToMany, then it will establish a one-to-many relationship
-// between the two entities where Entity0 is the "one" and Entity1 is the "many".
+// Link is a generic method to establish a connection between the two entities.
+// Any two entities that embed the Row type can be linked together while maintaining
+// primary key entropy equal to the sum of the two entities.
 func (m *DiLink[T0, T1]) Link(ctx context.Context, row types.Linkable) error {
 	return m.Put(ctx, row)
 }
 
-// Unlink method to remove the connection between the two entities.
+// Unlink method removes the connection between the two entities by deleting the link record.
 func (m *DiLink[T0, T1]) Unlink(ctx context.Context, row types.Linkable) error {
 	return m.Delete(ctx, row)
 }

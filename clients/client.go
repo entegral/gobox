@@ -51,7 +51,7 @@ var defaultClient *Client
 // client does not exist, it will be created using the default config
 func GetDefaultClient(ctx context.Context) *Client {
 	if defaultClient == nil {
-		c := new(ctx)
+		c := newClient(ctx)
 		defaultClient = &c
 	}
 	return defaultClient
@@ -63,7 +63,7 @@ func SetDefaultClient(ctx context.Context, client Client) {
 }
 
 // new creates a new client appropriate for use when running within an aws service (i.e. lambda)
-func new(ctx context.Context) Client {
+func newClient(ctx context.Context) Client {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(os.Getenv("AWS_REGION")))
 	fmt.Println(cfg.Region)
 	if err != nil {

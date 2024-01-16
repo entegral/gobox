@@ -22,7 +22,7 @@ func UpdateItem(ctx context.Context, row types.DynamoUpdater) (*dynamodb.UpdateI
 
 // UpdateItemWithClient updates a row in DynamoDB. The row must implement the
 // DynamoUpdater interface. Consider embedding your type into a wrapper
-// that implements DynamoUpdater in order to issue the desired update behavior.
+// that implements DynamoUpdater in order to issue a specific update behavior.
 func UpdateItemWithClient(ctx context.Context, client *clients.Client, row types.DynamoUpdater) (*dynamodb.UpdateItemOutput, error) {
 	input, err := row.DynamoUpdateInput(ctx)
 	if err != nil {

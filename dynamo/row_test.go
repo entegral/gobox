@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,9 +30,9 @@ func TestRow(t *testing.T) {
 
 	t.Run("CRUD is the bread and butter of the Row type", func(t *testing.T) {
 		t.Run("out of the gate, embedding the Row into your type grants you free Get, Put and Update methods", func(t *testing.T) {
-			// lets test this with a TimeCapsule struct
 			var timeCapsuleGUID string
 			t.Run("CRUD methods used in this repo rely on the Pk value being set", func(t *testing.T) {
+				// lets test this with a TimeCapsule struct
 				type TimeCapsule struct {
 					Row
 					Name string `dynamo:"name"` // Name of the TimeCapsule
@@ -127,9 +128,29 @@ func TestRow(t *testing.T) {
 				assert.Equal(t, true, user.WasPutSuccessful())
 				assert.Equal(t, float64(2), *user.PutItemOutput.ConsumedCapacity.CapacityUnits)
 			})
+			t.Run("change user name and get replaced item", func(t *testing.T) {
+				user := CreateUser(testUserEmail)
+				user.Name = "newName"
+				err = user.Put(ctx, user)
+				if err != nil {
+					t.Error(err)
+				}
+				assert.Equal(t, true, user.WasPutSuccessful())
+				oldUser := User{}
+				err := attributevalue.UnmarshalMap(user.OldPutValues(), &oldUser)
+				if err != nil {
+					t.Error(err)
+				}
+				assert.Equal(t, testUserEmail, oldUser.Email)
+				assert.Equal(t, testUserName, oldUser.Name)
+				assert.Equal(t, testUserAge, oldUser.Age)
+			})
 			t.Run("get", func(t *testing.T) {
+				err := preclear.Put(ctx, preclear)
+				if err != nil {
+					t.Error(err)
+				}
 				u := CreateUser(testUserEmail)
-
 				loaded, err := u.Get(ctx, u)
 				if err != nil {
 					t.Error(err)

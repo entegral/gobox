@@ -80,17 +80,3 @@ func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
 	}
 	return true, nil
 }
-
-// findLinksByEntity0 is a generic method to query for a list of links based on the Entity0.
-func findDiLinksByEntity0[T0, T1 ttypes.Linkable](ctx context.Context, clients *clients.Client, e0 T0, linkWrapper ttypes.Typeable) ([]DiLink[T0, T1], error) {
-	rows, err := findLinkRowsByEntityGSI[T0](ctx, clients, e0, Entity0GSI, linkWrapper)
-	if err != nil {
-		return nil, err
-	}
-	var links []DiLink[T0, T1]
-	err = attributevalue.UnmarshalListOfMaps(rows, &links)
-	if err != nil {
-		return nil, err
-	}
-	return links, nil
-}

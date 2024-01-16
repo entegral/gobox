@@ -93,6 +93,7 @@ type Row struct {
 	Pk5 string `dynamodbav:"pk5,omitempty" json:"pk5,omitempty"`
 	Sk5 string `dynamodbav:"sk5,omitempty" json:"sk5,omitempty"`
 	Pk6 string `dynamodbav:"pk6,omitempty" json:"pk6,omitempty"`
+	Sk6 string `dynamodbav:"sk6,omitempty" json:"sk6,omitempty"`
 
 	// TTL is the UTC time that this record will expire.
 	TTL *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
@@ -110,11 +111,6 @@ func (r *Row) Type() string {
 		return "row"
 	}
 	return r.UnmarshalledType
-}
-
-// IsType returns true if the record is of the given type.
-func (r Row) IsType(t string) bool {
-	return r.Type() == t
 }
 
 func (r *Row) Keys(gsi int) (string, string, error) {

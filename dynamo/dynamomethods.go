@@ -37,7 +37,7 @@ type DBManagerInterface interface {
 	Get(ctx context.Context, row types.Linkable) (loaded bool, err error)
 	WasGetSuccessful() bool
 	Put(ctx context.Context, row types.Linkable) (err error)
-	OldPutValues(item any) map[string]awstypes.AttributeValue
+	OldPutValues() map[string]awstypes.AttributeValue
 	Delete(ctx context.Context, row types.Linkable) (err error)
 	OldDeleteValues() map[string]awstypes.AttributeValue
 	LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error)
@@ -53,9 +53,9 @@ func NewDBManager(tableName string) DBManagerInterface {
 // TableName returns the name of the DynamoDB table.
 // By default, this is the value of the TABLENAME environment variable.
 // If you need to override this, implement this method on the parent type.
-func (r *DBManager) TableName(ctx context.Context) string {
-	if r.Tablename != "" {
-		return r.Tablename
+func (d *DBManager) TableName(ctx context.Context) string {
+	if d.Tablename != "" {
+		return d.Tablename
 	}
 	tn := os.Getenv("TABLENAME")
 	if tn == "" {
@@ -91,11 +91,12 @@ func (d *DBManager) WasPutSuccessful() bool {
 }
 
 // OldPutValues returns the old values from the last successful PutItem operation.
-func (d *DBManager) OldPutValues(item any) map[string]awstypes.AttributeValue {
+func (d *DBManager) OldPutValues() map[string]awstypes.AttributeValue {
 	if d.PutItemOutput == nil {
 		return nil
 	}
-	return d.PutItemOutput.Attributes
+	newItem := *d.PutItemOutput
+	return newItem.Attributes
 }
 
 // Delete deletes a row from DynamoDB. The row must implement the Keyable interface.
