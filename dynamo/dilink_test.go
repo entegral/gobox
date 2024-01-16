@@ -60,6 +60,8 @@ func TestDiLink(t *testing.T) {
 	// these only have the minimum required fields to generate the composite keys
 	minimalUser := &User{
 		Email: email,
+		Name:  name,
+		Age:   age,
 	}
 	minimalCar := &Car{
 		Make:  carmake,
@@ -132,6 +134,10 @@ func TestDiLink(t *testing.T) {
 		t.Run("LoadEntities", func(t *testing.T) {
 			pinkSlip := &PinkSlip{
 				DiLink: *NewDiLink(minimalUser, minimalCar),
+			}
+			err := minimalUser.Put(ctx, minimalUser)
+			if err != nil {
+				t.Error(err)
 			}
 			t.Run("LoadEntity0", func(t *testing.T) {
 				// now the pink slip has been created locally with only enough info to generate the composite keys

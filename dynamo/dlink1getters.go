@@ -55,7 +55,28 @@ func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T
 }
 
 func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
-	e1pk, e1sk := m.ExtractE1Keys()
+	pk, sk, err := m.Entity1.Keys(0)
+	var e1pk, e1sk string
+	if err == nil {
+		seg, err := addKeySegment(rowType, m.Entity1.Type())
+		if err != nil {
+			return false, err
+		}
+		e1pk = seg
+		seg, err = addKeySegment(rowPk, pk)
+		if err != nil {
+			return false, err
+		}
+		e1pk += seg
+		e1sk = sk
+	} else {
+		if pk == "" || sk == "" {
+			e1pk, e1sk, err = m.ExtractE1Keys()
+			if err != nil {
+				return false, err
+			}
+		}
+	}
 	tn := m.TableName(ctx)
 	clients := clients.GetDefaultClient(ctx)
 	out, err := clients.Dynamo().GetItem(ctx, &dynamodb.GetItemInput{

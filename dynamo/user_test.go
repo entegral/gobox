@@ -1,5 +1,7 @@
 package dynamo
 
+import "errors"
+
 type User struct {
 	Row
 	Email string
@@ -15,8 +17,11 @@ func (e ErrMissingEmail) Error() string {
 
 // Keys returns the partition key and sort key for the row
 func (u *User) Keys(gsi int) (string, string, error) {
+	if u == nil {
+		return "", "", errors.New("nil user")
+	}
 	if u.Email == "" {
-		return "", "", ErrMissingEmail{}
+		return "", "", &ErrMissingEmail{}
 	}
 	// For this example, assuming GUID is the partition key and Email is the sort key.
 	// Additional logic can be added to handle different GSIs if necessary.

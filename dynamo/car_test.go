@@ -23,6 +23,9 @@ func (c *Car) Type() string {
 
 // Keys returns the partition key and sort key for the row
 func (c *Car) Keys(gsi int) (string, string, error) {
+	if c == nil {
+		return "", "", fmt.Errorf("nil car")
+	}
 	// For this example, assuming GUID is the partition key and Make-Model-Year is the sort key.
 	// Additional logic can be added to handle/add different GSIs if addtional access patterns are necessary.
 	switch gsi {

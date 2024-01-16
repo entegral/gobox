@@ -47,17 +47,19 @@ func (m *DiLink[T0, T1]) GenerateDiLinkKeys() (string, string, error) {
 	return m.Pk, m.Sk, nil
 }
 
-func (m *DiLink[T0, T1]) ExtractE1Keys() (string, string) {
+func (m *DiLink[T0, T1]) ExtractE1Keys() (string, string, error) {
 	if m.Pk == "" || m.Sk == "" {
-		m.GenerateDiLinkKeys()
+		_, _, err := m.GenerateDiLinkKeys()
+		if err != nil {
+			return "", "", err
+		}
 	}
 	if m.E1pk != "" && m.E1sk != "" {
-		return m.E1pk, m.E1sk
+		return m.E1pk, m.E1sk, nil
 	}
 	pk1 := extractKeys(entity1pk, m.Pk)
 	sk1 := extractKeys(entity1sk, m.Sk)
-
-	return pk1, sk1
+	return pk1, sk1, nil
 }
 
 func (m *DiLink[T0, T1]) Keys(gsi int) (string, string, error) {

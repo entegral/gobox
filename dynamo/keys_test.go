@@ -68,7 +68,8 @@ func TestGenerateLinkKeys(t *testing.T) {
 		testType.Entity0 = &a
 		testType.Entity1 = &b
 		testType.GenerateDiLinkKeys()
-		pk, sk := testType.ExtractE1Keys()
+		pk, sk, err := testType.ExtractE1Keys()
+		assert.Nil(t, err)
 		assert.Equal(t, "/rowType(typeB)/rowPk(partionKeyB)", pk)
 		assert.Equal(t, "sortKeyB", sk)
 	})
