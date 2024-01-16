@@ -23,11 +23,11 @@ type MyStruct struct {
 
 ### Key Methods of `Row`
 
-- `Keys(gsi int) (partitionKey, sortKey string, err error)`: Intended to return keys for a Global Secondary Index (GSI). This method should be implemented in the parent struct.
+- `Keys(gsi int) (partitionKey, sortKey string, err error)`: Intended to return keys for the Composite Key (gsi0) or a Global Secondary Index (GSI). This method should be implemented in the parent struct. If undefined, the default behavior will assign a random UUID to the Pk and "row" as the sk.
 - `Type() string`: Returns the record's type, defaulting to "dilink" or the value of `UnmarshalledType`.
-- `MaxShard() int`: Checks if the record type matches the specified type `t`.
+- `MaxShard() int`: Every item written is also sharded on a special index. For types that are frequently written, this method may need to return an integer greater than the default of 100.
 - `TableName(ctx context.Context) string`: Retrieves the DynamoDB table name, defaulting to the "TABLENAME" environment variable.
-
+  
 
 These methods become part of the parent struct due to Go's embedded struct behavior, allowing for overriding in the parent struct.
 
