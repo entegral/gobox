@@ -26,9 +26,6 @@ func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Lin
 		return false, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
 	linkExists, err = link.Get(ctx, linkWrapper)
-	if err != nil {
-		return false, err
-	}
 	return linkExists, err
 }
 

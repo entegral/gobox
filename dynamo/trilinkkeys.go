@@ -37,7 +37,7 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 		return "", "", err
 	}
 	m.Pk += seg
-	m.Sk, err = addKeySegment(entity2sk, e2sk)
+	seg, err = addKeySegment(entity2sk, e2sk)
 	if err != nil {
 		return "", "", err
 	}

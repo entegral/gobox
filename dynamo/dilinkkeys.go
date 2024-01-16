@@ -1,7 +1,5 @@
 package dynamo
 
-import "errors"
-
 func (m *DiLink[T0, T1]) GenerateDiLinkKeys() (string, string, error) {
 	// generate keys for the 0th entity
 	_, _, err := m.GenerateMonoLinkKeys()
@@ -77,6 +75,6 @@ func (m *DiLink[T0, T1]) Keys(gsi int) (string, string, error) {
 		return m.Pk1, m.Sk1, nil
 	default:
 		// Handle other GSIs or return an error
-		return "", "", errors.New("invalid GSI")
+		return "", "", ErrInvalidGSI{GSI: gsi}
 	}
 }
