@@ -101,4 +101,3 @@ type MyStruct struct {
 
 Utilize the `Link` and `Unlink` methods to establish or remove connections between these entities. 
 
-Remember to handle errors and implement required methods in your structs to fully utilize the dynamo package's capabilities.
