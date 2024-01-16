@@ -44,8 +44,9 @@ type MyStruct struct {
 
 ### Using `MonoLink`
 
-- `Link` method establishes a connection between entities.
-- `Unlink` method removes the connection.
+- `Get` retrieves the monolink from dynamo, if it exists.
+- `Put` method establishes a connection between entities.
+- `Delete` method removes the connection.
 
 Example:
 
