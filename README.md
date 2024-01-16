@@ -1,41 +1,34 @@
 # gobox
-Robert Bruce
+**Author:** Robert Bruce
 
 ## Introduction
 
-The purpose of this gobox is to provide a simple way to rapidly create new type directories for an application. Nearly all of my projects have a type directory, and many times those types need to be stored in a database. This gobox provides a simple framework for creating new types that have DynamoDB methods built into them, as well as a simple way to relate those types to each other in an easy and declarative way. 
-
+gobox is designed to streamline the creation of new type directories for applications. Most projects necessitate a type directory, often requiring database storage. gobox offers an efficient framework for generating new types equipped with DynamoDB methods, facilitating straightforward and declarative inter-type relationships. 
 
 ## Overview
 
-The bulk of the code is in the `dynamo` package. This package provides a simple way to create new types that have DynamoDB methods built into them. The `dynamo` package also provides a simple way to relate those types to each other in an easy and declarative way.
+The core functionality resides in the `dynamo` package, which simplifies the creation of new types integrated with DynamoDB methods. It also enables easy, declarative relationships between these types.
 
 ### Row Type
 
-The `Row` type is the base type for all types that will be stored in DynamoDB. It provides a simple way to create new types that have DynamoDB methods built into them. It can be [embedded](examples/exampleLib/user.go) into other types [to provide basic CRUD operations](<examples/row/put/main.go>) on any data type.
-
-These types are very important and should represent the core data types of your application. 
+At the foundation is the `Row` type, essential for all types destined for DynamoDB storage. It enables the creation of new types with inherent DynamoDB methods. By embedding the `Row` type into other types, it provides basic CRUD operations on any data type, representing the essential data types of your application.
 
 ### Link Types
 
-There are 3 `Link` types that this package provides that allow you to relate `Row` types to each other in various ways. These types are the `MonoLink`, `DiLink`, and `TriLink` types.
+To interrelate `Row` types, the package offers three `Link` types: `MonoLink`, `DiLink`, and `TriLink`.
 
 #### MonoLink 
 
-The `MonoLink` type can be thought of as an [extension](examples/exampleLib/user.go) of the base `Row` type. It allows you to isolate less-frequently accessed fields of a `Row` type into a separate partition of the database by specifying an `Entity0` base entity. Since the `MonoLink`'s keys are deterministically derived from the `Row` type's keys, it is easy to access the `MonoLink`'s data from the base `Row` type. However, it is unlikely that the `MonoLink` would act as an entrypoint to the `Row` type's data. While certainly possible to query for a `MonoLink`'s data directly, then load the base type from it, this is not the intended use case for a `MonoLink` and it is recommended that you only use the `MonoLink` as a cost-saving measure for less-frequently accessed fields of a `Row` type.
+`MonoLink`, an augmentation of the `Row` type, segregates seldom-accessed `Row` fields into a separate database partition, using an `Entity0` base entity. With keys derived from the `Row` type’s keys, accessing `MonoLink` data is straightforward. However, `MonoLink` is not typically the primary access point for `Row` data. While direct querying of `MonoLink` data is feasible, it is primarily a cost-effective solution for infrequently accessed `Row` fields.
 
 #### DiLink
 
-The [DiLink](examples/exampleLib/pinkslip.go) type is similar to a `MonoLink`, but it also has an `Entity1` base entity, allowing you to relate two `Row` types together. It enables a many-to-many relationship between the two types by linking two instances of the `Row` types together. 
-
-The existence of a `DiLink` row in dynamo indicates that the two `Row` types are related to each other. Like the `MonoLink`, the `DiLink`'s keys are deterministically derived from the two entities' keys methods, so it is easy to access the `DiLink`'s data from either of the `Row` types. The `DiLink` even has helper functions allowing you to load all possible `Entity0s` or `Entity1s`. 
-
+`DiLink` expands on `MonoLink` by adding an `Entity1` base entity, linking two `Row` types. It fosters a many-to-many relationship, interconnecting two `Row` instances. The presence of a `DiLink` row signifies a relationship between two `Row` types. Its keys, derived from the entities’ keys, simplify access to `DiLink` data from either `Row` type, with helper functions for loading potential `Entity0s` or `Entity1s`. 
 
 #### TriLink
 
-The `TriLink` type is similar to a `DiLink`, but it also has an `Entity2` base entity, allowing you to query for, and relate, three `Row` types together with a single row. While not as common of a use case as the `DiLink`, the `TriLink` is still a useful tool for relating three `Row` types together in situations where all three types are exist and could benefit from direct querying.
-
+`TriLink` is an extension of `DiLink`, incorporating an `Entity2` base entity. This allows for querying and relating three `Row` types with a single row. Though less common than `DiLink`, `TriLink` is valuable for interrelating three `Row` types in scenarios where such a relationship is beneficial.
 
 ## Instructions 
 
-This gobox is intended to be used as a library. It is not intended to be used as a standalone application. There are several examples in the `examples` directory that show various ways to use this gobox tool in your application.
+gobox is intended as a library, not as a standalone application. The `examples` directory provides various usage scenarios, demonstrating how to integrate gobox into your applications.
