@@ -31,4 +31,9 @@ To interrelate `Row` types, the package offers three `Link` types: `MonoLink`, `
 
 ## Instructions 
 
-gobox is intended as a library, not as a standalone application. The `examples` directory provides various usage scenarios, demonstrating how to integrate gobox into your applications.
+gobox is designed to be utilized as a library component within your projects, rather than as a standalone application. To guide you in implementing gobox's features, we have provided a comprehensive suite of tests. These tests not only assure the functionality of the library but also serve as practical examples. 
+
+In the tests, you'll find various types implementing the tools and functionalities offered by gobox. These examples illustrate how to effectively use the `Row`, `MonoLink`, `DiLink`, and `TriLink` types, among other features. By studying these tests, you can gain insights into how to integrate and leverage the capabilities of gobox in your own applications.
+
+We recommend examining these tests to familiarize yourself with the library's usage patterns and to see the implementation of its key components in action.
+
