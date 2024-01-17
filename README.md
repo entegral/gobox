@@ -27,7 +27,7 @@ To interrelate `Row` types, the package offers three `Link` types: `MonoLink`, `
 
 #### TriLink
 
-`TriLink` is an extension of `DiLink`, incorporating an `Entity2` base entity. This allows for querying and relating three `Row` types with a single row. Though less common than `DiLink`, `TriLink` is valuable for interrelating three `Row` types in scenarios where such a relationship is beneficial.
+`TriLink` is an extension of `DiLink`, incorporating an `Entity2` base entity. This allows for querying and relating three `Row` types with a single row. The `TriLink` is valuable for interrelating three `Row` types in scenarios where such a relationship is beneficial. I considered extrapolating this pattern, but stopped because I felt the `TriLink` was sufficiently "relational" and more types also means more maintenance. 
 
 ## Instructions 
 
