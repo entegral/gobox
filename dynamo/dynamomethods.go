@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/entegral/gobox/types"
+	"github.com/go-redis/redis/v8"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -27,6 +28,9 @@ type DBManager struct {
 	// GetItem operation. This is useful for comparing the old values
 	// with the new values after a PutItem operation.
 	RowData map[string]awstypes.AttributeValue `dynamodbav:"-" json:"-"`
+
+	//RedisClient is a redis client that can be used for caching
+	RedisClient *redis.Client
 }
 
 // DBManagerInterface defines the interface for DynamoDB operations.

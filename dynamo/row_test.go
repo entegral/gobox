@@ -11,6 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	TEST_EMAIL     = "testEmail@gmail.com"
+	TEST_USER_NAME = "Test User Name"
+	TEST_USER_AGE  = 30
+)
+
 func TestRow(t *testing.T) {
 	// init
 
@@ -18,8 +24,8 @@ func TestRow(t *testing.T) {
 	// os.Setenv("GOBOX_TESTING", "true") // this will ensure return consumed capacity values are returned
 	ctx := context.Background()
 	preclear := &User{
-		Email: "testEmail@gmail.com",
-		Name:  "TestName",
+		Email: TEST_EMAIL,
+		Name:  TEST_USER_NAME,
 		Age:   30,
 	}
 	// ensure we start with an empty slate
@@ -110,9 +116,9 @@ func TestRow(t *testing.T) {
 			})
 		})
 		t.Run("heres another few examples of how you use the methods", func(t *testing.T) {
-			testUserEmail := "testEmail@gmail.com"
-			testUserName := "TestName"
-			testUserAge := 30
+			testUserEmail := TEST_EMAIL
+			testUserName := TEST_USER_NAME
+			testUserAge := TEST_USER_AGE
 			t.Run("put", func(t *testing.T) {
 				// the example User type implements a Keyable function that will use the Email field as the pk
 				// and a static "info" string as the sk. Using a constructor function is a good way to ensure
