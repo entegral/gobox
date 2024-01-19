@@ -3,13 +3,10 @@ package dynamo
 import (
 	"context"
 
-	"github.com/entegral/gobox/clients"
 	ttypes "github.com/entegral/gobox/types"
-
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 )
 
-func (m *DiLink[T0, T1]) LoadEntity0s(ctx context.Context, linkWrapper ttypes.Typeable) ([]T0, error) {
+func (m *DiLink[T0, T1]) LoadEntity0s(ctx context.Context, linkWrapper ttypes.Linkable) ([]T0, error) {
 	loaded, err := m.LoadEntity1(ctx)
 	if err != nil {
 		return nil, err
@@ -17,7 +14,7 @@ func (m *DiLink[T0, T1]) LoadEntity0s(ctx context.Context, linkWrapper ttypes.Ty
 	if !loaded {
 		return nil, ErrEntityNotFound[T1]{Entity: m.Entity1}
 	}
-	links, err := FindByEntity1[T1, *DiLink[T0, T1]](ctx, m.Entity1, linkWrapper)
+	links, err := FindLinksByEntity1[T1, *DiLink[T0, T1]](ctx, m.Entity1, linkWrapper.Type())
 	if err != nil {
 		return nil, err
 	}
@@ -32,22 +29,4 @@ func (m *DiLink[T0, T1]) LoadEntity0s(ctx context.Context, linkWrapper ttypes.Ty
 		}
 	}
 	return entities, nil
-}
-
-// FindByEntity1 is a generic method to query for a list of links based on the Entity1.
-func FindByEntity1[T1, CustomLinkType ttypes.Linkable](ctx context.Context, e1 T1, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
-	clients := clients.GetDefaultClient(ctx)
-	rows, err := findLinkRowsByEntityGSI[T1](ctx, clients, e1, Entity1GSI, linkWrapper)
-	if err != nil {
-		return nil, err
-	}
-	var links []CustomLinkType
-	for _, item := range rows {
-		var link CustomLinkType
-		if err := attributevalue.UnmarshalMap(item, &link); err != nil {
-			return nil, err
-		}
-		links = append(links, link)
-	}
-	return links, nil
 }

@@ -19,7 +19,7 @@ func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Ty
 	if !loaded {
 		return nil, ErrEntityNotFound[T0]{Entity: m.Entity0}
 	}
-	links, err := FindByEntity0[T0, *DiLink[T0, T1]](ctx, m.Entity0, linkWrapper)
+	links, err := FindLinksByEntity0[T0, *DiLink[T0, T1]](ctx, m.Entity0, linkWrapper)
 	if err != nil {
 		return nil, err
 	}
@@ -34,24 +34,6 @@ func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Ty
 		}
 	}
 	return entities, nil
-}
-
-// FindByEntity0 is a generic method to query for a list of links based on the Entity0.
-func FindByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
-	client := clients.GetDefaultClient(ctx)
-	rows, err := findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI, linkWrapper)
-	if err != nil {
-		return nil, err
-	}
-	var links []CustomLinkType
-	for _, item := range rows {
-		var link CustomLinkType
-		if err := attributevalue.UnmarshalMap(item, &link); err != nil {
-			return nil, err
-		}
-		links = append(links, link)
-	}
-	return links, nil
 }
 
 func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {

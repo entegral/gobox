@@ -131,7 +131,7 @@ func TestDiLink(t *testing.T) {
 				})
 			})
 		})
-		t.Run("LoadEntities", func(t *testing.T) {
+		t.Run("Load Entities of Link", func(t *testing.T) {
 			pinkSlip := &PinkSlip{
 				DiLink: *NewDiLink(minimalUser, minimalCar),
 			}
@@ -285,5 +285,6 @@ func TestDiLink(t *testing.T) {
 				})
 			})
 		})
+		t.Run("FindLinks", func(t *testing.T) {})
 	})
 }
