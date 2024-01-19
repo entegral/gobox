@@ -114,9 +114,9 @@ func TestDiLink(t *testing.T) {
 				if err != nil {
 					t.Error(err)
 				}
-				t.Run("Should return false when the record isn't in dynamo", func(t *testing.T) {
+				t.Run("Should return false when the link isn't in dynamo", func(t *testing.T) {
 					linkExists, err := pinkSlip.CheckLink(ctx, pinkSlip, preClearedUser, preClearedCar)
-					assert.IsType(t, &ErrItemNotFound{}, err)
+					assert.Nil(t, err)
 					assert.Equal(t, false, linkExists)
 				})
 				t.Run("should return true when the record is in dynamo", func(t *testing.T) {

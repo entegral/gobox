@@ -32,9 +32,15 @@ func (link *TriLink[T0, T1, T2]) CheckLink(ctx context.Context, linkWrapper type
 	if !loaded2 {
 		return false, &ErrEntityNotFound[T2]{Entity: link.Entity2}
 	}
-
 	linkExists, err = link.Get(ctx, linkWrapper)
-	return linkExists, nil
+	switch err.(type) {
+	case nil:
+		return linkExists, nil
+	case *ErrItemNotFound:
+		return false, nil
+	default:
+		return linkExists, err
+	}
 }
 
 // NewTriLink creates a new TriLink instance.

@@ -29,10 +29,6 @@ func NewMonoLink[T0 types.Linkable](entity0 T0) *MonoLink[T0] {
 // CheckMonoLink creates a new MonoLink instance from the entities and attempts to load them from dynamo.
 // If any of the entities cannot be loaded from dynamo, an error describing the missing entity will be returned.
 func checkMonoLink[T0 types.Linkable](ctx context.Context, link *MonoLink[T0]) (allEntitiesExist bool, err error) {
-	linkLoaded, err := link.Get(ctx, link)
-	if err != nil {
-		return false, err
-	}
 	// load the entities
 	loaded0, err := link.Get(ctx, link.Entity0)
 	if err != nil {
@@ -41,8 +37,16 @@ func checkMonoLink[T0 types.Linkable](ctx context.Context, link *MonoLink[T0]) (
 	if !loaded0 {
 		return false, ErrEntityNotFound[T0]{Entity: link.Entity0}
 	}
-	if !linkLoaded {
-		return true, ErrLinkNotFound{}
+	linkLoaded, err := link.Get(ctx, link)
+	if err != nil {
+		return false, err
 	}
-	return true, nil
+	switch err.(type) {
+	case nil:
+		return linkLoaded, nil
+	case *ErrItemNotFound:
+		return false, nil
+	default:
+		return linkLoaded, err
+	}
 }

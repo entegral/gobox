@@ -26,7 +26,14 @@ func (link *DiLink[T0, T1]) CheckLink(ctx context.Context, linkWrapper types.Lin
 		return false, ErrEntityNotFound[T1]{Entity: link.Entity1}
 	}
 	linkExists, err = link.Get(ctx, linkWrapper)
-	return linkExists, err
+	switch err.(type) {
+	case nil:
+		return linkExists, nil
+	case *ErrItemNotFound:
+		return false, nil
+	default:
+		return linkExists, err
+	}
 }
 
 // NewDiLink creates a new DiLink instance.
