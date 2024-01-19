@@ -70,9 +70,9 @@ func findLinkRowsByEntityGSI[T ttypes.Linkable](ctx context.Context, clients *cl
 }
 
 // FindLinksByEntity0 is a generic method to query for a list of links based on the Entity0.
-func FindLinksByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
+func FindLinksByEntity0[T0, CustomLinkType ttypes.Linkable](ctx context.Context, e0 T0, linkType string) ([]CustomLinkType, error) {
 	client := clients.GetDefaultClient(ctx)
-	rows, err := findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI, linkWrapper.Type())
+	rows, err := findLinkRowsByEntityGSI[T0](ctx, client, e0, Entity0GSI, linkType)
 	if err != nil {
 		return nil, err
 	}
@@ -106,9 +106,9 @@ func FindLinksByEntity1[T1, CustomLinkType ttypes.Linkable](ctx context.Context,
 }
 
 // FindLinksByEntity2 is a generic method to query for a list of links based on the Entity2.
-func FindLinksByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e2 T2, linkWrapper ttypes.Typeable) ([]CustomLinkType, error) {
+func FindLinksByEntity2[T2, CustomLinkType ttypes.Linkable](ctx context.Context, e2 T2, linkType string) ([]CustomLinkType, error) {
 	clients := clients.GetDefaultClient(ctx)
-	rows, err := findLinkRowsByEntityGSI[T2](ctx, clients, e2, Entity2GSI, linkWrapper.Type())
+	rows, err := findLinkRowsByEntityGSI[T2](ctx, clients, e2, Entity2GSI, linkType)
 	if err != nil {
 		return nil, err
 	}

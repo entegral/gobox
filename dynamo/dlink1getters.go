@@ -19,7 +19,7 @@ func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Ty
 	if !loaded {
 		return nil, ErrEntityNotFound[T0]{Entity: m.Entity0}
 	}
-	links, err := FindLinksByEntity0[T0, *DiLink[T0, T1]](ctx, m.Entity0, linkWrapper)
+	links, err := FindLinksByEntity0[T0, *DiLink[T0, T1]](ctx, m.Entity0, linkWrapper.Type())
 	if err != nil {
 		return nil, err
 	}
