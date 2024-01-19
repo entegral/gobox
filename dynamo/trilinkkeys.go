@@ -45,17 +45,20 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 	return m.Pk, m.Sk, nil
 }
 
-func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string) {
+func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string, error) {
 	if m.Pk == "" || m.Sk == "" {
-		m.GenerateTriLinkCompositeKey()
+		_, _, err := m.GenerateTriLinkCompositeKey()
+		if err != nil {
+			return "", "", err
+		}
 	}
 	if m.E2pk != "" && m.E2sk != "" {
-		return m.E2pk, m.E2sk
+		return m.E2pk, m.E2sk, nil
 	}
 	pk2 := extractKeys(entity2pk, m.Pk)
 	sk2 := extractKeys(entity2sk, m.Sk)
 
-	return pk2, sk2
+	return pk2, sk2, nil
 }
 
 func (m *TriLink[T0, T1, T2]) Keys(gsi int) (string, string, error) {

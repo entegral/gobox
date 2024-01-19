@@ -2,13 +2,14 @@ package dynamo
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/entegral/gobox/clients"
 	ttypes "github.com/entegral/gobox/types"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Typeable) ([]T1, error) {
@@ -37,9 +38,14 @@ func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Ty
 }
 
 func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
-	pk, sk, err := m.Entity1.Keys(0)
-	var e1pk, e1sk string
-	if err == nil {
+	var pk, sk, e1pk, e1sk string
+	var err error
+
+	if !reflect.ValueOf(m.Entity1).IsNil() {
+		pk, sk, err = m.Entity1.Keys(0)
+		if err != nil {
+			return false, err
+		}
 		seg, err := addKeySegment(rowType, m.Entity1.Type())
 		if err != nil {
 			return false, err
@@ -59,13 +65,14 @@ func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
 			}
 		}
 	}
+
 	tn := m.TableName(ctx)
 	clients := clients.GetDefaultClient(ctx)
 	out, err := clients.Dynamo().GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &tn,
-		Key: map[string]types.AttributeValue{
-			"pk": &types.AttributeValueMemberS{Value: e1pk},
-			"sk": &types.AttributeValueMemberS{Value: e1sk},
+		Key: map[string]awstypes.AttributeValue{
+			"pk": &awstypes.AttributeValueMemberS{Value: e1pk},
+			"sk": &awstypes.AttributeValueMemberS{Value: e1sk},
 		},
 	})
 	if err != nil {
