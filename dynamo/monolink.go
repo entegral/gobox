@@ -16,3 +16,11 @@ type MonoLink[T0 types.Linkable] struct {
 
 	Entity0 T0 `dynamodbav:"-" json:"entity0,omitempty"`
 }
+
+// Type returns the type of the record.
+func (r *MonoLink[T0]) Type() string {
+	if r.UnmarshalledType == "" {
+		return "MonoLink"
+	}
+	return r.UnmarshalledType
+}

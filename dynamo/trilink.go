@@ -38,7 +38,7 @@ func (m *TriLink[T0, T1, T2]) LoadEntities(ctx context.Context) (e0Loaded, e1Loa
 // Type returns the type of the record.
 func (r *TriLink[T0, T1, T2]) Type() string {
 	if r.UnmarshalledType == "" {
-		return "trilink"
+		return "TriLink"
 	}
 	return r.UnmarshalledType
 }
