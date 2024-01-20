@@ -42,7 +42,7 @@ func Example() {
     }
 
     getUser := &User{}  // look ma, no fields!
-    getUser.Pk = user.Pk // the Put method used the default Keyable method, which genrates a UUID, so we need to set the Pk to the same value
+    getUser.Pk = user.Pk // the Put method used the default Keyable method, which genrates a UUID if the Pk isn't set, so we need to set the Pk to the same value
     loaded, err := user.Get(context.TODO(), user)
     if err != nil {
         // handle error
