@@ -22,7 +22,7 @@ Satisfy the Typeable interface and you can already Get, Put and Delete these int
 ```go
 type User struct {
   dynamo.Row
-  // high demand fields
+  // fields required to find this Base type in dynamo given your application's access patterns
   EMAIL string `json:"email"`
 }
 
