@@ -47,7 +47,7 @@ func Example() {
     if err != nil {
         // handle error
     }
-    // this is markdown, so we can't show the output, but loaded will be the same as user
+    // this is markdown, so we can't show the output, but getUser will be the same as the saved user
     fmt.Println(getUser)
 
     // guess what we do next...
