@@ -60,10 +60,12 @@ func Example() {
 
 ### Key Methods of Row
 
+Much of this gobox requires a type to be Linkable. By default these methods are provided, however, you MUST at least provide your own Type() method, and it **should** always return a string that is an EXACT match to the name of the receiver's type.
+
+- `Type() string`: Returns the record type, by default it will return `Row`, `MonoLink`, `DiLink` or `TriLink`.
 - `Keys(gsi int) (partitionKey, sortKey string, err error)`: Returns keys for a Composite Key or GSI.
-- `Type() string`: Returns the record type, typically "dilink" or `UnmarshalledType`.
-- `MaxShard() int`: Returns the shard count, defaulting to 100.
-- `TableName(ctx context.Context) string`: Retrieves the DynamoDB table name.
+- `MaxShard() int`: Returns the shard count, defaulting to 100. This is used to maintain a sharded index for all you data types. This is likely to be the least scalable default, its default should probably be bigger, but just override the method on your high-demand types and return a higher number.
+- `TableName(ctx context.Context) string`: By default this method checks the Tablename field of the row. If that is blank, it reads from the TABLENAME env var. This method can be overridden to do whatever the heck you want. Just make sure your compute has access to your table.
 
 ## MonoLink
 
