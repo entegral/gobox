@@ -7,7 +7,7 @@ gobox is designed to streamline the creation of new type directories for applica
 
 ## Overview
 
-The core functionality resides in the [`dynamo`](./dynamo/README.md) package, which simplifies the creation of new types integrated with DynamoDB methods. It also enables easy, declarative relationships between these types.
+The core functionality (plus examples and tests) are in the [`dynamo`](./dynamo/README.md) package, which simplifies the creation of new types integrated with DynamoDB methods. It also enables easy, declarative relationships between these types.
 
 ### Row Type
 
