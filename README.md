@@ -11,7 +11,7 @@ The core functionality (plus examples and tests) are in the [`dynamo`](./dynamo/
 
 ### Row Type
 
-At the foundation is the `Row` type, essential for all types destined for DynamoDB storage. It enables the creation of new types with inherent DynamoDB methods. By embedding the `Row` type into other types, it provides basic CRUD operations on any data type, representing the essential data types of your application.
+At the foundation is the `Row` type, essential for all types destined for DynamoDB storage. It should contain highly-available fields, as well as any fields that relate to the access-patterns of this type. By embedding the `Row` type into other types, it provides basic CRUD operations on any data type, representing the essential data types of your application.
 
 ### Link Types
 
@@ -19,7 +19,7 @@ To interrelate `Row` types, the package offers three `Link` types: `MonoLink`, `
 
 #### MonoLink 
 
-`MonoLink`, an augmentation of the `Row` type, segregates seldom-accessed `Row` fields into a separate database partition, using an `Entity0` base entity. With keys derived from the `Row` type’s keys, accessing `MonoLink` data is straightforward. However, `MonoLink` is not typically the primary access point for `Row` data. While direct querying of `MonoLink` data is feasible, it is primarily a cost-effective solution for infrequently accessed `Row` fields.
+`MonoLink`, an augmentation of the `Row` type, segregates slices of data that relate to the base `Row` type into their own separate database partitions, using an `Entity0` base entity. With keys derived from the `Row` type’s keys, accessing `MonoLink` data is straightforward when using the FindLinks helpers of the `dynamo` package. Since MonoLinks' keys are derrived from the keys of a base type, they can usually be fetched concurrently and/or independently of each other, making your dynamo queries smaller and more specific/targeted.
 
 #### DiLink
 
