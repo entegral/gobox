@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	sqstypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,6 +22,11 @@ func (m *mockLinkable) Keys(gsi int) (partitionKey, sortKey string, err error) {
 
 func (m *mockLinkable) Type() string {
 	return "mockLinkable"
+}
+
+func init() {
+	ctx := context.Background()
+	clients.SetDefaultClientToLocalStack(ctx)
 }
 
 func TestBatchGet(t *testing.T) {

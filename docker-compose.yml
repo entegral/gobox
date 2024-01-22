@@ -1,0 +1,20 @@
+version: '3'
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - '4566:4566'
+    environment:
+      - EDGE_BIND_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+  test:
+    build: .
+    command: /bin/sh -c "sleep 30 && go test ./..."
+    network_mode: host
+    depends_on:
+      localstack:
+        condition: service_healthy

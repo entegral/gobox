@@ -72,6 +72,29 @@ func newClient(ctx context.Context) Client {
 	return NewFromConfig(ctx, cfg)
 }
 
+// SetDefaultClientToLocalStack sets the default client to a LocalStack client
+func SetDefaultClientToLocalStack(ctx context.Context) {
+	c := newLocalStackClient(ctx)
+	defaultClient = &c
+}
+
+// newLocalStackClient creates a new client configured to use LocalStack
+func newLocalStackClient(ctx context.Context) Client {
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion(os.Getenv("AWS_REGION")),
+		config.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				URL:           "http://host.docker.internal:4566",
+				SigningRegion: "us-west-2",
+			}, nil
+		})),
+	)
+	if err != nil {
+		logrus.Fatal("error", err)
+	}
+	return NewFromConfig(ctx, cfg)
+}
+
 // NewLongTermCredentialClient creates a new client appropriate for use when you have long term credentials
 func NewLongTermCredentialClient(ctx context.Context, accessKeyID, secretAccessKey string) Client {
 	cfg, err := newConfigWithLongTermCredentials(ctx, accessKeyID, secretAccessKey)

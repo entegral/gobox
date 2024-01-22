@@ -6,16 +6,18 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/entegral/gobox/clients"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDiLink(t *testing.T) {
+	ctx := context.Background()
+	clients.SetDefaultClientToLocalStack(ctx)
 	// init
 	os.Setenv("TESTING", "true")
 	os.Setenv("TABLENAME", "arctica")
 	// t.Setenv("TABLENAME", os.Getenv("TABLENAME"))
 	// t.Setenv("TESTING", os.Getenv("TESTING")) // this will ensure return consumed capacity values are returned
-	ctx := context.Background()
 	// ensure we start with an empty slate
 	const email = "testDiLinkEmail@gmail.com"
 	const name = "TestDiLinkName"
