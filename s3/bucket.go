@@ -19,3 +19,8 @@ func (b *BucketManager) GetObject(ctx context.Context, item types.Keyable) error
 	err := Get(ctx, b.Bucket, item)
 	return err
 }
+
+func (b *BucketManager) DeleteObject(ctx context.Context, item types.Keyable) error {
+	err := Delete(ctx, b.Bucket, item)
+	return err
+}
