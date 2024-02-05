@@ -8,25 +8,29 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
-type Result struct {
-	Index  int
-	Loaded bool
-	Error  error
+type Result[T types.Linkable] struct {
+	Index int
+	Item  *T
+	Error error
 }
 
 // BatchGet gets multiple rows from DynamoDB concurrently. The rows must implement the Keyable interface.
-func (d *DBManager) BatchGet(ctx context.Context, rows []types.Linkable) <-chan Result {
-	results := make(chan Result)
+func (d DynamoManager[T]) BatchGet(ctx context.Context, rows []T) <-chan Result[T] {
+	results := make(chan Result[T])
 
 	go func() {
 		var wg sync.WaitGroup
 
 		for i, row := range rows {
 			wg.Add(1)
-			go func(i int, row types.Linkable) {
+			go func(i int, row T) {
 				defer wg.Done()
-				loaded, err := d.Get(ctx, row)
-				results <- Result{i, loaded, err}
+				item, err := d.Get(ctx)
+				if err != nil {
+					results <- Result[T]{i, item, err}
+					return
+				}
+				results <- Result[T]{i, item, err}
 			}(i, row)
 		}
 
@@ -38,18 +42,19 @@ func (d *DBManager) BatchGet(ctx context.Context, rows []types.Linkable) <-chan 
 }
 
 // BatchPut puts multiple rows into DynamoDB concurrently. The rows must implement the Linkable interface.
-func (d *DBManager) BatchPut(ctx context.Context, rows []types.Linkable) <-chan Result {
-	results := make(chan Result)
+func (d *DynamoManager[T]) BatchPut(ctx context.Context, rows []T) <-chan Result[T] {
+	results := make(chan Result[T])
 
 	go func() {
 		var wg sync.WaitGroup
 
 		for i, row := range rows {
 			wg.Add(1)
-			go func(i int, row types.Linkable) {
+			go func(i int, row T) {
 				defer wg.Done()
 				err := d.Put(ctx, row)
-				results <- Result{i, err == nil, err}
+
+				results <- Result[T]{i, &row, err}
 			}(i, row)
 		}
 
@@ -61,18 +66,18 @@ func (d *DBManager) BatchPut(ctx context.Context, rows []types.Linkable) <-chan 
 }
 
 // BatchDelete deletes multiple rows from DynamoDB concurrently. The rows must implement the Keyable interface.
-func (d *DBManager) BatchDelete(ctx context.Context, rows []types.Linkable) <-chan Result {
-	results := make(chan Result)
+func (d *DynamoManager[T]) BatchDelete(ctx context.Context, rows []T) <-chan Result[T] {
+	results := make(chan Result[T])
 
 	go func() {
 		var wg sync.WaitGroup
 
 		for i, row := range rows {
 			wg.Add(1)
-			go func(i int, row types.Linkable) {
+			go func(i int, row T) {
 				defer wg.Done()
-				err := d.Delete(ctx, row)
-				results <- Result{i, err == nil, err}
+				err := d.Delete(ctx)
+				results <- Result[T]{i, &row, err}
 			}(i, row)
 		}
 
@@ -84,18 +89,18 @@ func (d *DBManager) BatchDelete(ctx context.Context, rows []types.Linkable) <-ch
 }
 
 // BatchLoadFromMessage unmarshals multiple SQS messages into Rows and then loads the full items from DynamoDB concurrently.
-func (d *DBManager) BatchLoadFromMessage(ctx context.Context, messages []sqstypes.Message, rows []types.Linkable) <-chan Result {
-	results := make(chan Result)
+func (d *DynamoManager[T]) BatchLoadFromMessage(ctx context.Context, messages []sqstypes.Message, rows []T) <-chan Result[T] {
+	results := make(chan Result[T])
 
 	go func() {
 		var wg sync.WaitGroup
 
 		for i, message := range messages {
 			wg.Add(1)
-			go func(i int, message sqstypes.Message, row types.Linkable) {
+			go func(i int, message sqstypes.Message, row T) {
 				defer wg.Done()
-				loaded, err := d.LoadFromMessage(ctx, message, row)
-				results <- Result{i, loaded, err}
+				item, err := d.LoadFromMessage(ctx, message)
+				results <- Result[T]{i, item, err}
 			}(i, message, rows[i])
 		}
 

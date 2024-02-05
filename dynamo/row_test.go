@@ -200,7 +200,7 @@ func TestRow(t *testing.T) {
 		t.Run("1/1/2020 to unix", func(t *testing.T) {
 			assert.Equal(t, expectedDynamoTTL, expectedTTL.Unix())
 		})
-		t.Run("the DBManager.TTL field will marshal into an int", func(t *testing.T) {
+		t.Run("the DynamoManager.TTL field will marshal into an int", func(t *testing.T) {
 			testGUID := "ttlTestGUID1"
 			// lets test this with a TimeCapsule struct
 			type TimeCapsule struct {

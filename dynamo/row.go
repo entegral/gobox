@@ -102,7 +102,7 @@ type Row struct {
 	PkShard string `dynamodbav:"pkshard,omitempty" json:"pkshard,omitempty"`
 	// Type is the type of the row.
 	UnmarshalledType string `dynamodbav:"type" json:"type,omitempty"`
-	DBManager        `dynamodbav:"-" json:"-"`
+	DynamoManager    `dynamodbav:"-" json:"-"`
 }
 
 // Type returns the type of the record.

@@ -75,8 +75,8 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 	// if the row has a RowData field by embedding the Row struct, set it
 	rowValue := reflect.ValueOf(row).Elem()
 	if rowDataField := rowValue.FieldByName("Row"); rowDataField.IsValid() {
-		if DBManager := rowDataField.FieldByName("DBManager"); DBManager.IsValid() {
-			rowData := DBManager.FieldByName("RowData")
+		if DynamoManager := rowDataField.FieldByName("DynamoManager"); DynamoManager.IsValid() {
+			rowData := DynamoManager.FieldByName("RowData")
 			if rowData.CanSet() {
 				rowData.Set(reflect.ValueOf(out.Item))
 			}

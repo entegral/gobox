@@ -24,7 +24,7 @@ func (m *mockLinkable) Type() string {
 }
 
 func TestBatchGet(t *testing.T) {
-	db := &DBManager{}
+	db := &DynamoManager{}
 	rows := []types.Linkable{&mockLinkable{}, &mockLinkable{}}
 
 	results := db.BatchGet(context.Background(), rows)
@@ -39,7 +39,7 @@ func TestBatchGet(t *testing.T) {
 }
 
 func TestBatchPut(t *testing.T) {
-	db := &DBManager{}
+	db := &DynamoManager{}
 	rows := []types.Linkable{&mockLinkable{}, &mockLinkable{}}
 
 	results := db.BatchPut(context.Background(), rows)
@@ -50,7 +50,7 @@ func TestBatchPut(t *testing.T) {
 }
 
 func TestBatchDelete(t *testing.T) {
-	db := &DBManager{}
+	db := &DynamoManager{}
 	rows := []types.Linkable{&mockLinkable{}, &mockLinkable{}}
 
 	results := db.BatchDelete(context.Background(), rows)
@@ -65,7 +65,7 @@ func TestBatchLoadFromMessage(t *testing.T) {
 		Name: "loadFromSQSTestName",
 	}
 	t.Run("should return ErrSQSMessageEmpty if no body is present in message", func(t *testing.T) {
-		db := &DBManager{}
+		db := &DynamoManager{}
 		messages := []sqstypes.Message{{}, {}}
 		rows := []types.Linkable{&mockLinkable{}, &mockLinkable{}}
 
@@ -92,7 +92,7 @@ func TestBatchLoadFromMessage(t *testing.T) {
 			}
 		}()
 
-		db := &DBManager{}
+		db := &DynamoManager{}
 		messages := []sqstypes.Message{
 			{
 				Body: aws.String(`{"Type": "row", "Pk": "ttlTestGUID1", "Sk": "row"}`),
@@ -114,7 +114,7 @@ func TestBatchLoadFromMessage(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		db := &DBManager{}
+		db := &DynamoManager{}
 		messages := []sqstypes.Message{
 			{
 				Body: aws.String(`{"Type": "mockLinkable", "Pk": "nonexistent", "Sk": "nonexistent"}`),

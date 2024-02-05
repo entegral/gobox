@@ -7,18 +7,21 @@ import (
 
 	"github.com/entegral/gobox/types"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	sqstypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
-// DBManager is a struct that implements the DBManager interface.
+// DynamoManager is a struct that implements the DynamoManager interface.
 // It is intended to be embedded into other types to provide them with DynamoDB operations.
-type DBManager struct {
+type DynamoManager[T types.Linkable] struct {
+	Item  T
+	Items []T
 	// Tablename is a field you can set at runtime that will change the
 	// name of the DynamoDB table that is used for operations.
 	// It is ephemeral and will not be persisted to DynamoDB.
-	Tablename        string
+	tablename        string
 	GetItemOutput    *dynamodb.GetItemOutput    `dynamodbav:"-" json:"-"`
 	PutItemOutput    *dynamodb.PutItemOutput    `dynamodbav:"-" json:"-"`
 	DeleteItemOutput *dynamodb.DeleteItemOutput `dynamodbav:"-" json:"-"`
@@ -29,10 +32,10 @@ type DBManager struct {
 	RowData map[string]awstypes.AttributeValue `dynamodbav:"-" json:"-"`
 }
 
-// DBManagerInterface defines the interface for DynamoDB operations.
+// DynamoManagerInterface defines the interface for DynamoDB operations.
 // An interface is used to allow for mocking in unit tests, as well as to
 // limit the scope of the methods that are exposed to the parent type.
-type DBManagerInterface interface {
+type DynamoManagerInterface interface {
 	TableName(ctx context.Context) string
 	Get(ctx context.Context, row types.Linkable) (loaded bool, err error)
 	WasGetSuccessful() bool
@@ -43,19 +46,19 @@ type DBManagerInterface interface {
 	LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error)
 }
 
-// NewDBManager creates a new instance of DBManager and returns it as a DBManagerInterface.
-func NewDBManager(tableName string) DBManagerInterface {
-	return &DBManager{
-		Tablename: tableName,
+// NewDynamoManager creates a new instance of DynamoManager and returns it as a DynamoManagerInterface.
+func NewDynamoManager(tableName string) *DynamoManager[types.Linkable] {
+	return &DynamoManager[types.Linkable]{
+		tablename: tableName,
 	}
 }
 
 // TableName returns the name of the DynamoDB table.
 // By default, this is the value of the TABLENAME environment variable.
 // If you need to override this, implement this method on the parent type.
-func (d *DBManager) TableName(ctx context.Context) string {
-	if d.Tablename != "" {
-		return d.Tablename
+func (d *DynamoManager[T]) TableName(ctx context.Context) string {
+	if d.tablename != "" {
+		return d.tablename
 	}
 	tn := os.Getenv("TABLENAME")
 	if tn == "" {
@@ -64,34 +67,34 @@ func (d *DBManager) TableName(ctx context.Context) string {
 	return tn
 }
 
+// SetTableName sets the name of the DynamoDB table.
+func (d *DynamoManager[T]) SetTableName(tableName string) {
+	d.tablename = tableName
+}
+
 // Get gets a row from DynamoDB. The row must implement the Keyable interface.
 // The GetItemOutput response will be stored in the GetItemOutput field:
 // d.GetItemOutput
-func (d *DBManager) Get(ctx context.Context, row types.Linkable) (loaded bool, err error) {
+func (d *DynamoManager[T]) Get(ctx context.Context) (item *T, err error) {
 	tn := d.TableName(ctx)
-	d.GetItemOutput, err = GetItemWithTablename(ctx, tn, row)
-	return d.WasGetSuccessful(), err
+	d.GetItemOutput, err = GetItemWithTablename(ctx, tn, d.Item)
+	err = attributevalue.UnmarshalMap(d.GetItemOutput.Item, d.Item)
+	if err != nil {
+		return nil, err
+	}
+	return &d.Item, err
 }
 
-// WasGetSuccessful returns true if the last GetItem operation was successful.
-func (d *DBManager) WasGetSuccessful() bool {
-	return d.GetItemOutput != nil && d.GetItemOutput.Item != nil
-}
-
-// Put puts a row into DynamoDB. The row must implement the Linkable interface.
+// Put puts an item into DynamoDB. The item must implement the Linkable interface.
 // The PutItemOutput response will be stored in the PutItemOutput field:
 // d.PutItemOutput
-func (d *DBManager) Put(ctx context.Context, row types.Linkable) (err error) {
-	d.PutItemOutput, err = PutItem(ctx, row)
+func (d *DynamoManager[T]) Put(ctx context.Context, item types.Linkable) (err error) {
+	d.PutItemOutput, err = PutItem(ctx, item)
 	return err
 }
 
-func (d *DBManager) WasPutSuccessful() bool {
-	return d.PutItemOutput != nil
-}
-
 // OldPutValues returns the old values from the last successful PutItem operation.
-func (d *DBManager) OldPutValues() map[string]awstypes.AttributeValue {
+func (d *DynamoManager[T]) OldPutValues() map[string]awstypes.AttributeValue {
 	if d.PutItemOutput == nil {
 		return nil
 	}
@@ -102,13 +105,13 @@ func (d *DBManager) OldPutValues() map[string]awstypes.AttributeValue {
 // Delete deletes a row from DynamoDB. The row must implement the Keyable interface.
 // The DeleteItemOutput response will be stored in the DeleteItemOutput field:
 // d.DeleteItemOutput
-func (d *DBManager) Delete(ctx context.Context, row types.Linkable) (err error) {
-	d.DeleteItemOutput, err = DeleteItem(ctx, row)
+func (d *DynamoManager[T]) Delete(ctx context.Context) (err error) {
+	d.DeleteItemOutput, err = DeleteItem(ctx, d.Item)
 	return err
 }
 
 // OldDeleteValues returns the old values from the last successful DeleteItem operation.
-func (d *DBManager) OldDeleteValues() map[string]awstypes.AttributeValue {
+func (d *DynamoManager[T]) OldDeleteValues() map[string]awstypes.AttributeValue {
 	if d.DeleteItemOutput == nil {
 		return nil
 	}
@@ -124,15 +127,15 @@ func (e ErrSQSMessageEmpty) Error() string {
 }
 
 // LoadFromMessage unmarshals an SQS message into a Row and then loads the full item from DynamoDB.
-func (d *DBManager) LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error) {
+func (d *DynamoManager[T]) LoadFromMessage(ctx context.Context, message sqstypes.Message) (*T, error) {
 	if message.Body == nil || *message.Body == "" {
-		return false, &ErrSQSMessageEmpty{Message: message}
+		return nil, &ErrSQSMessageEmpty{Message: message}
 	}
 	// Unmarshal the message body into the provided Row type
-	if err := json.Unmarshal([]byte(*message.Body), row); err != nil {
-		return false, err
+	if err := json.Unmarshal([]byte(*message.Body), d.Item); err != nil {
+		return nil, err
 	}
 
 	// Use the existing Get method to load the item from DynamoDB
-	return d.Get(ctx, row)
+	return d.Get(ctx)
 }
