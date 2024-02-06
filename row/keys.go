@@ -20,3 +20,30 @@ type Keys struct {
 func (k *Keys) MaxGSIs() int {
 	return 6
 }
+
+// SetKey
+func (k *Keys) SetKey(key Key) {
+	switch key.Index {
+	case 0:
+		k.Pk = key.PK
+		k.Sk = key.SK
+	case 1:
+		k.Pk1 = key.PK
+		k.Sk1 = key.SK
+	case 2:
+		k.Pk2 = key.PK
+		k.Sk2 = key.SK
+	case 3:
+		k.Pk3 = key.PK
+		k.Sk3 = key.SK
+	case 4:
+		k.Pk4 = key.PK
+		k.Sk4 = key.SK
+	case 5:
+		k.Pk5 = key.PK
+		k.Sk5 = key.SK
+	case 6:
+		k.Pk6 = key.PK
+		k.Sk6 = key.SK
+	}
+}
