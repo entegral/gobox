@@ -1,4 +1,4 @@
-package dynamo
+package row
 
 import (
 	"context"
@@ -29,24 +29,24 @@ var ctx = context.Background()
 
 func TestRow(t *testing.T) {
 	t.Run("Save the user", func(t *testing.T) {
-		user := User{
+		userRow := NewRow(&User{
 			Email: "test@gmail.com",
 			Name:  "Test",
-		}
-		old, err := Put(ctx, &user)
+		})
+		old, err := userRow.Put(ctx)
 		if err != nil {
 			t.Error(err)
 		}
 		t.Log(old)
 	})
 	t.Run("Get the user", func(t *testing.T) {
-		user := User{
+		userRow := NewRow(&User{
 			Email: "test@gmail.com",
-		}
-		err := Get(ctx, &user)
+		})
+		err := userRow.Get(ctx)
 		if err != nil {
 			t.Error(err)
 		}
-		assert.Equal(t, "Test", user.Name)
+		assert.Equal(t, "Test", userRow.Object().Name)
 	})
 }

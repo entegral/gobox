@@ -1,4 +1,4 @@
-package dynamo
+package row
 
 import (
 	"context"
@@ -11,27 +11,26 @@ import (
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-func Put[T Rowable](ctx context.Context, item T) (oldRow row[T], err error) {
-	r := newRow[T](item)
+func (item Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 	// Marshal the input into a map of AttributeValues
-	rowData, err := attributevalue.MarshalMap(r.object)
+	rowData, err := attributevalue.MarshalMap(item.object)
 	if err != nil {
 		return oldRow, err
 	}
 
-	for i := 0; i < r.MaxGSIs(); i++ {
-		pk, sk, err := r.object.Keys(i)
+	for i := 0; i < item.MaxGSIs(); i++ {
+		pk, sk, err := item.object.Keys(i)
 		if err != nil {
-			msg := fmt.Sprintf("error generating keys for gsi %d of type %s", i, r.object.Type())
+			msg := fmt.Sprintf("error generating keys for gsi %d of type %s", i, item.object.Type())
 			slog.Error(msg, err)
 			return oldRow, err
 		}
 		if pk == "" && sk == "" {
 			continue
 		} else if pk == "" {
-			return oldRow, fmt.Errorf("partition key is required for gsi %d of type %s", i, r.object.Type())
+			return oldRow, fmt.Errorf("partition key is required for gsi %d of type %s", i, item.object.Type())
 		} else if sk == "" {
-			return oldRow, fmt.Errorf("sort key is required for gsi %d of type %s", i, r.object.Type())
+			return oldRow, fmt.Errorf("sort key is required for gsi %d of type %s", i, item.object.Type())
 		}
 		pkKey := "pk"
 		skKey := "sk"
@@ -46,12 +45,12 @@ func Put[T Rowable](ctx context.Context, item T) (oldRow row[T], err error) {
 	// Create the PutItem input
 	putItemInput := &dynamodb.PutItemInput{
 		Item:         rowData,
-		TableName:    aws.String(r.TableName()),
+		TableName:    aws.String(item.TableName()),
 		ReturnValues: awstypes.ReturnValueAllOld,
 	}
 
 	// Call DynamoDB PutItem
-	result, err := r.GetClient(ctx).Dynamo().PutItem(ctx, putItemInput)
+	result, err := item.GetClient(ctx).Dynamo().PutItem(ctx, putItemInput)
 	if err != nil {
 		return oldRow, err
 	}

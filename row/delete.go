@@ -1,4 +1,4 @@
-package dynamo
+package row
 
 import (
 	"context"
@@ -9,10 +9,9 @@ import (
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-func Delete[T Rowable](ctx context.Context, item T) (oldRow row[T], err error) {
-	r := newRow[T](item)
+func (item Row[T]) Delete(ctx context.Context) (oldRow Row[T], err error) {
 	// Generate the keys from the input
-	partitionKey, sortKey, err := r.object.Keys(0) // Assuming GSI 0 for primary key
+	partitionKey, sortKey, err := item.object.Keys(0) // Assuming GSI 0 for primary key
 	if err != nil {
 		return oldRow, err
 	}
@@ -30,12 +29,12 @@ func Delete[T Rowable](ctx context.Context, item T) (oldRow row[T], err error) {
 	// Create the DeleteItem input
 	deleteItemInput := &dynamodb.DeleteItemInput{
 		Key:          key,
-		TableName:    aws.String(r.TableName()),
+		TableName:    aws.String(item.TableName()),
 		ReturnValues: awstypes.ReturnValueAllOld,
 	}
 
 	// Call DynamoDB DeleteItem
-	result, err := r.GetClient(ctx).Dynamo().DeleteItem(ctx, deleteItemInput)
+	result, err := item.GetClient(ctx).Dynamo().DeleteItem(ctx, deleteItemInput)
 	if err != nil {
 		return oldRow, err
 	}
