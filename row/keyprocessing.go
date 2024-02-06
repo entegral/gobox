@@ -6,6 +6,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/dgryski/trifles/uuid"
 	"github.com/entegral/gobox/types"
 )
 
@@ -81,7 +82,11 @@ func (item Row[T]) GenerateKeys(ctx context.Context, keys chan<- Key, errs chan<
 				return
 			}
 
-			if pk == "" && sk == "" {
+			if pk == "" && sk == "" && i == 0 {
+				// If the primary keys are empty and this is the primary index, assign a guid to the primary key and "default" to the sort key
+				pk = uuid.UUIDv4()
+				sk = "default"
+			} else if pk == "" && sk == "" {
 				continue
 			} else if pk == "" {
 				errs <- fmt.Errorf("partition key is required for gsi %d of type %s", i, item.object.Type())
