@@ -3,6 +3,10 @@ package row
 import (
 	"context"
 	"fmt"
+	"strings"
+	"unicode"
+
+	"github.com/entegral/gobox/types"
 )
 
 // Define a struct to hold the keys and the index
@@ -10,6 +14,54 @@ type Key struct {
 	PK    string
 	SK    string
 	Index int
+}
+
+type ErrInvalidKeySegment struct {
+	label string
+	value string
+}
+
+func (e ErrInvalidKeySegment) Error() string {
+	return fmt.Sprintf("invalid key segment: %s(%s)", e.label, e.value)
+}
+
+func containsObscureWhitespace(value string) bool {
+	for _, r := range value {
+		if unicode.IsSpace(r) && !unicode.IsPrint(r) {
+			return true
+		}
+	}
+	return false
+}
+
+func addKeySegment(label linkLabels, value string) (string, error) {
+	// Check if label or value contains characters that could affect the regex
+	if len(value) == 0 || strings.ContainsAny(string(label), "()") || containsObscureWhitespace(value) {
+		return "", ErrInvalidKeySegment{string(label), value}
+	}
+	if !label.IsValidLabel() {
+		return "", ErrInvalidKeySegment{string(label), value}
+	}
+
+	// Check if value matches any linkLabel
+	err := label.IsValidValue(value)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("/%s(%s)", label, value), nil
+}
+
+func prependWithRowType(row types.Typeable, pk string) (string, error) {
+	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return "", err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return "", err
+	}
+	pkWithTypePrefix += seg
+	return pkWithTypePrefix, nil
 }
 
 // Define a function to generate the keys
@@ -47,10 +99,19 @@ func (item Row[T]) GenerateKeys(ctx context.Context, keys chan<- Key, errs chan<
 // Define the default post-processing function
 func (item *Row[T]) DefaultPostProcessing(ctx context.Context, key Key) (Key, error) {
 	// Default post-processing logic goes here
-	// ...
+	pk, err := prependWithRowType(item.object, key.PK)
+	if err != nil {
+		return key, err
+	}
 
-	// If an error occurs during post-processing, return it
-	// return Key{}, err
+	sk, err := prependWithRowType(item.object, key.SK)
+	if err != nil {
+		return key, err
+	}
+
+	// Set the post-processed keys
+	key.PK = pk
+	key.SK = sk
 
 	// Return the post-processed key
 	return key, nil
