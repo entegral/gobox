@@ -3,7 +3,6 @@ package row
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -11,6 +10,7 @@ import (
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+// Modify the Put function to use the GenerateKeys function
 func (item Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 	// Marshal the input into a map of AttributeValues
 	rowData, err := attributevalue.MarshalMap(item.object)
@@ -18,28 +18,32 @@ func (item Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 		return oldRow, err
 	}
 
-	for i := 0; i < item.MaxGSIs(); i++ {
-		pk, sk, err := item.object.Keys(i)
-		if err != nil {
-			msg := fmt.Sprintf("error generating keys for gsi %d of type %s", i, item.object.Type())
-			slog.Error(msg, err)
-			return oldRow, err
-		}
-		if pk == "" && sk == "" {
-			continue
-		} else if pk == "" {
-			return oldRow, fmt.Errorf("partition key is required for gsi %d of type %s", i, item.object.Type())
-		} else if sk == "" {
-			return oldRow, fmt.Errorf("sort key is required for gsi %d of type %s", i, item.object.Type())
-		}
+	// Create channels for the keys, post-processed keys, and errors
+	keys := make(chan Key)
+	processedKeys := make(chan Key)
+	errs := make(chan error)
+
+	// Start a goroutine to generate the keys
+	go item.GenerateKeys(ctx, keys, errs)
+
+	// Start a goroutine to post-process the keys
+	go item.PostProcessKeys(ctx, keys, processedKeys, errs)
+
+	// Process the post-processed keys and errors
+	for key := range processedKeys {
 		pkKey := "pk"
 		skKey := "sk"
-		if i > 0 {
-			pkKey += fmt.Sprintf("%d", i)
-			skKey += fmt.Sprintf("%d", i)
+		if key.Index > 0 {
+			pkKey += fmt.Sprintf("%d", key.Index)
+			skKey += fmt.Sprintf("%d", key.Index)
 		}
-		rowData[pkKey] = &awstypes.AttributeValueMemberS{Value: pk}
-		rowData[skKey] = &awstypes.AttributeValueMemberS{Value: sk}
+		rowData[pkKey] = &awstypes.AttributeValueMemberS{Value: key.PK}
+		rowData[skKey] = &awstypes.AttributeValueMemberS{Value: key.SK}
+	}
+
+	// Check for any errors
+	for err := range errs {
+		return oldRow, err
 	}
 
 	// Create the PutItem input

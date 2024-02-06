@@ -18,8 +18,10 @@ type Link[T0, T1 Rowable] struct {
 
 // NewLink creates a new Link
 func NewLink[T0, T1 Rowable](e0 Row[T0], e1 Row[T1]) Link[T0, T1] {
+	// create
 	return Link[T0, T1]{
-		Keys:    NewKeys(),
+		// TODO gonna jam on this later
+		// Keys:    NewKeys(),
 		Entity0: e0,
 		Entity1: e1,
 	}
