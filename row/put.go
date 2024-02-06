@@ -10,8 +10,11 @@ import (
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-// Modify the Put function to use the GenerateKeys function
-func (item *Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
+// Put saves the row to DynamoDB. It uses the item's GenerateKeys function to create the keys for the row.
+// If provided, modifyFunc can be used to adjust the PutItemInput before saving.
+// However, the Item and TableName fields are protected from modification.
+// If successful, it returns the old row that was replaced. If not, it returns an error.
+func (item *Row[T]) Put(ctx context.Context, modifyFunc func(*dynamodb.PutItemInput)) (oldRow Row[T], err error) {
 	// Marshal the input into a map of AttributeValues
 	rowData, err := attributevalue.MarshalMap(item.object)
 	if err != nil {
@@ -55,6 +58,15 @@ func (item *Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 		TableName:    aws.String(item.TableName()),
 		ReturnValues: awstypes.ReturnValueAllOld,
 	}
+
+	// If a modify function was provided, call it with the PutItemInput
+	if modifyFunc != nil {
+		modifyFunc(putItemInput)
+	}
+
+	// Overwrite the Item and TableName fields to prevent modification
+	putItemInput.Item = rowData
+	putItemInput.TableName = aws.String(item.TableName())
 
 	// Call DynamoDB PutItem
 	result, err := item.GetClient(ctx).Dynamo().PutItem(ctx, putItemInput)

@@ -9,6 +9,13 @@ import (
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+// Query retrieves rows from DynamoDB that match the provided key.
+// It runs in a separate goroutine, making it non-blocking and allowing the function to return immediately.
+// This means the calling function can continue executing while the query is performed in the background.
+// Results and errors are sent through channels as they become available.
+// The key is used to create a QueryInput for DynamoDB, specifying the primary key and sort key.
+// If successful, it unmarshals the returned items into Rows and sends them to the results channel.
+// If an error occurs at any point, it is sent to the errors channel.
 func (item *Row[T]) Query(ctx context.Context, key Key) (<-chan Row[T], <-chan error) {
 	// Create the channels for results and errors
 	results := make(chan Row[T])
