@@ -12,9 +12,10 @@ import (
 
 // Define a struct to hold the keys and the index
 type Key struct {
-	PK    string
-	SK    string
-	Index int
+	PK       string
+	SK       string
+	Index    int
+	IsEntity bool
 }
 
 type ErrInvalidKeySegment struct {
