@@ -11,7 +11,7 @@ import (
 )
 
 // Modify the Put function to use the GenerateKeys function
-func (item Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
+func (item *Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 	// Marshal the input into a map of AttributeValues
 	rowData, err := attributevalue.MarshalMap(item.object)
 	if err != nil {
@@ -27,7 +27,7 @@ func (item Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 	go item.GenerateKeys(ctx, keys, errs)
 
 	// Start a goroutine to post-process the keys
-	go item.PostProcessKeys(ctx, keys, processedKeys, errs)
+	go item.postProcessKeys(ctx, keys, processedKeys, errs)
 
 	// Process the post-processed keys and errors
 	for key := range processedKeys {
@@ -39,6 +39,9 @@ func (item Row[T]) Put(ctx context.Context) (oldRow Row[T], err error) {
 		}
 		rowData[pkKey] = &awstypes.AttributeValueMemberS{Value: key.PK}
 		rowData[skKey] = &awstypes.AttributeValueMemberS{Value: key.SK}
+
+		// ensure the item's key struct is updated with the new keys
+		item.Keys.SetKey(key)
 	}
 
 	// Check for any errors

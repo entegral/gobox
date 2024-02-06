@@ -26,45 +26,6 @@ func (e ErrInvalidKeySegment) Error() string {
 	return fmt.Sprintf("invalid key segment: %s(%s)", e.label, e.value)
 }
 
-func containsObscureWhitespace(value string) bool {
-	for _, r := range value {
-		if unicode.IsSpace(r) && !unicode.IsPrint(r) {
-			return true
-		}
-	}
-	return false
-}
-
-func addKeySegment(label linkLabels, value string) (string, error) {
-	// Check if label or value contains characters that could affect the regex
-	if len(value) == 0 || strings.ContainsAny(string(label), "()") || containsObscureWhitespace(value) {
-		return "", ErrInvalidKeySegment{string(label), value}
-	}
-	if !label.IsValidLabel() {
-		return "", ErrInvalidKeySegment{string(label), value}
-	}
-
-	// Check if value matches any linkLabel
-	err := label.IsValidValue(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("/%s(%s)", label, value), nil
-}
-
-func prependWithRowType(row types.Typeable, pk string) (string, error) {
-	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
-	if err != nil {
-		return "", err
-	}
-	seg, err := addKeySegment(rowPk, pk)
-	if err != nil {
-		return "", err
-	}
-	pkWithTypePrefix += seg
-	return pkWithTypePrefix, nil
-}
-
 // Define a function to generate the keys
 func (item Row[T]) GenerateKeys(ctx context.Context, keys chan<- Key, errs chan<- error) {
 	defer close(keys)
@@ -123,7 +84,7 @@ func (item *Row[T]) DefaultPostProcessing(ctx context.Context, key Key) (Key, er
 }
 
 // Define a method to post-process the keys
-func (item *Row[T]) PostProcessKeys(ctx context.Context, keys <-chan Key, processedKeys chan<- Key, errs chan<- error) {
+func (item *Row[T]) postProcessKeys(ctx context.Context, keys <-chan Key, processedKeys chan<- Key, errs chan<- error) {
 	// Close the processedKeys channel
 	defer close(processedKeys)
 
@@ -151,4 +112,43 @@ func (item *Row[T]) PostProcessKeys(ctx context.Context, keys <-chan Key, proces
 			processedKeys <- postProcessedKey
 		}
 	}
+}
+
+func containsObscureWhitespace(value string) bool {
+	for _, r := range value {
+		if unicode.IsSpace(r) && !unicode.IsPrint(r) {
+			return true
+		}
+	}
+	return false
+}
+
+func addKeySegment(label linkLabels, value string) (string, error) {
+	// Check if label or value contains characters that could affect the regex
+	if len(value) == 0 || strings.ContainsAny(string(label), "()") || containsObscureWhitespace(value) {
+		return "", ErrInvalidKeySegment{string(label), value}
+	}
+	if !label.IsValidLabel() {
+		return "", ErrInvalidKeySegment{string(label), value}
+	}
+
+	// Check if value matches any linkLabel
+	err := label.IsValidValue(value)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("/%s(%s)", label, value), nil
+}
+
+func prependWithRowType(row types.Typeable, pk string) (string, error) {
+	pkWithTypePrefix, err := addKeySegment(rowType, row.Type())
+	if err != nil {
+		return "", err
+	}
+	seg, err := addKeySegment(rowPk, pk)
+	if err != nil {
+		return "", err
+	}
+	pkWithTypePrefix += seg
+	return pkWithTypePrefix, nil
 }
