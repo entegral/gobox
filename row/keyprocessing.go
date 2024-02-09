@@ -79,16 +79,17 @@ func (item *Row[T]) DefaultPostProcessing(ctx context.Context, key Key) (Key, er
 		return key, err
 	}
 
-	sk, err := prependWithRowType(item.object, key.SK)
+	sk, err := addKeySegment(rowSk, key.SK)
 	if err != nil {
 		return key, err
 	}
 
 	// Set the post-processed keys
-	item.Keys.SetKey(Key{PK: pk, SK: sk, Index: key.Index, IsEntity: key.IsEntity})
+	processedKey := Key{PK: pk, SK: sk, Index: key.Index, IsEntity: key.IsEntity}
+	item.Keys.SetKey(processedKey)
 
 	// Return the post-processed key
-	return key, nil
+	return processedKey, nil
 }
 
 func (item *Row[T]) postProcessKey(ctx context.Context, key Key) (processedKey Key, err error) {

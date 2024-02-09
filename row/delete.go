@@ -22,38 +22,15 @@ type DeleteResult[T Rowable] struct {
 // Errors from individual delete operations are sent to the error channel.
 //
 // Note: The caller is responsible for handling and draining both channels.
-func (item *Row[T]) Delete(ctx context.Context, keys ...Key) (<-chan DeleteResult[T], <-chan error) {
-	// Create channels for results and errors
-	results := make(chan DeleteResult[T])
-	errors := make(chan error)
-
-	go func() {
-		defer close(results)
-		defer close(errors)
-
-		if len(keys) == 1 {
-			deletedItem, err := item.deleteSingleItem(ctx, keys[0])
-			if err != nil {
-				errors <- err
-				return
-			}
-			results <- DeleteResult[T]{DeletedItems: []Row[T]{deletedItem}}
-		} else {
-			// Call deleteBatchItems and handle its returned channels
-			batchResults, batchErrors := item.deleteBatchItems(ctx, keys)
-			for res := range batchResults {
-				results <- res
-			}
-			for err := range batchErrors {
-				errors <- err
-			}
-		}
-	}()
-
-	return results, errors
+func (item *Row[T]) Delete(ctx context.Context) error {
+	return item.deleteSingleItem(ctx)
 }
 
-func (item *Row[T]) deleteSingleItem(ctx context.Context, key Key) (Row[T], error) {
+func (item *Row[T]) deleteSingleItem(ctx context.Context) error {
+	key, err := item.object.Keys(0)
+	if err != nil {
+		return err
+	}
 	// Create the DeleteItem input
 	deleteItemInput := &dynamodb.DeleteItemInput{
 		Key: map[string]types.AttributeValue{
@@ -71,17 +48,16 @@ func (item *Row[T]) deleteSingleItem(ctx context.Context, key Key) (Row[T], erro
 	// Call DynamoDB DeleteItem
 	result, err := item.GetClient(ctx).Dynamo().DeleteItem(ctx, deleteItemInput)
 	if err != nil {
-		return Row[T]{}, err
+		return err
 	}
 
 	// Unmarshal the result into a Row
-	var deletedRow Row[T]
-	err = attributevalue.UnmarshalMap(result.Attributes, &deletedRow)
+	err = attributevalue.UnmarshalMap(result.Attributes, &item)
 	if err != nil {
-		return Row[T]{}, err
+		return err
 	}
 
-	return deletedRow, nil
+	return nil
 }
 
 func (item *Row[T]) deleteBatchItems(ctx context.Context, keys []Key) (<-chan DeleteResult[T], <-chan error) {
