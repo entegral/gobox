@@ -28,7 +28,9 @@ func (e ErrInvalidKeySegment) Error() string {
 }
 
 // Define a function to generate the keys
-func (item Row[T]) GenerateKeys(ctx context.Context, keys chan<- Key, errs chan<- error) {
+func (item *Row[T]) GenerateKeys(ctx context.Context) (keys chan Key, errs chan error) {
+	keys = make(chan Key, item.MaxGSIs())
+	errs = make(chan error)
 	defer close(keys)
 	defer close(errs)
 
@@ -36,31 +38,37 @@ func (item Row[T]) GenerateKeys(ctx context.Context, keys chan<- Key, errs chan<
 		select {
 		case <-ctx.Done():
 			errs <- ctx.Err()
-			return
+			return keys, errs
 		default:
-			pk, sk, err := item.object.Keys(i)
+			key, err := item.object.Keys(i)
 			if err != nil {
 				errs <- fmt.Errorf("error generating keys for gsi %d of type %s: %w", i, item.object.Type(), err)
-				return
+				return keys, errs
 			}
 
-			if pk == "" && sk == "" && i == 0 {
+			if key.PK == "" && key.SK == "" && i == 0 {
 				// If the primary keys are empty and this is the primary index, assign a guid to the primary key and "default" to the sort key
-				pk = uuid.UUIDv4()
-				sk = "default"
-			} else if pk == "" && sk == "" {
+				key.PK = uuid.UUIDv4()
+				key.SK = "default"
+			} else if key.PK == "" && key.SK == "" {
 				continue
-			} else if pk == "" {
+			} else if key.PK == "" {
 				errs <- fmt.Errorf("partition key is required for gsi %d of type %s", i, item.object.Type())
-				return
-			} else if sk == "" {
+				return keys, errs
+			} else if key.SK == "" {
 				errs <- fmt.Errorf("sort key is required for gsi %d of type %s", i, item.object.Type())
-				return
+				return keys, errs
 			}
-
-			keys <- Key{PK: pk, SK: sk, Index: i}
+			key, err = item.postProcessKey(ctx, key)
+			if err != nil {
+				errs <- fmt.Errorf("error post-processing keys for gsi %d of type %s: %w", i, item.object.Type(), err)
+				return keys, errs
+			}
+			item.Keys.SetKey(key)
+			keys <- key
 		}
 	}
+	return keys, errs
 }
 
 // Define the default post-processing function
@@ -77,42 +85,46 @@ func (item *Row[T]) DefaultPostProcessing(ctx context.Context, key Key) (Key, er
 	}
 
 	// Set the post-processed keys
-	key.PK = pk
-	key.SK = sk
+	item.Keys.SetKey(Key{PK: pk, SK: sk, Index: key.Index, IsEntity: key.IsEntity})
 
 	// Return the post-processed key
 	return key, nil
 }
 
-// Define a method to post-process the keys
-func (item *Row[T]) postProcessKeys(ctx context.Context, keys <-chan Key, processedKeys chan<- Key, errs chan<- error) {
-	// Close the processedKeys channel
-	defer close(processedKeys)
-
+func (item *Row[T]) postProcessKey(ctx context.Context, key Key) (processedKey Key, err error) {
 	// If a custom KeysPostProcessor function is set, call it and return
 	if item.KeysPostProcessor != nil {
-		item.KeysPostProcessor(ctx, keys, processedKeys, errs)
-		return
+		return item.KeysPostProcessor(ctx, key)
+	} else {
+		return item.DefaultPostProcessing(ctx, key)
 	}
+}
+
+// Define a method to post-process the keys
+func (item *Row[T]) postProcessKeys(ctx context.Context, keys chan Key) (<-chan Key, <-chan error) {
+	processedKeys := make(chan Key)
+	errs := make(chan error)
+	// Close the processedKeys channel
+	defer close(processedKeys)
+	defer close(errs)
 
 	// Otherwise, use the default post-processing logic
 	for key := range keys {
 		select {
 		case <-ctx.Done():
 			errs <- ctx.Err()
-			return
+			return processedKeys, errs
 		default:
-			// Call the default post-processing function
-			postProcessedKey, err := item.DefaultPostProcessing(ctx, key)
+			postProcessedKey, err := item.postProcessKey(ctx, key)
 			if err != nil {
 				errs <- err
-				return
+				return processedKeys, errs
 			}
-
 			// Send the post-processed key to the processedKeys channel
 			processedKeys <- postProcessedKey
 		}
 	}
+	return processedKeys, errs
 }
 
 func containsObscureWhitespace(value string) bool {

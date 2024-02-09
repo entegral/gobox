@@ -2,10 +2,8 @@ package row
 
 import (
 	"context"
-	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -13,26 +11,15 @@ import (
 // Get retrieves rows from DynamoDB that match the provided keys.
 // If a single key is provided, it retrieves the row and unmarshals it into the receiver.
 // If multiple keys are provided, it retrieves the rows in batches and returns them through a channel.
-func (item *Row[T]) Get(ctx context.Context, keys ...Key) (<-chan Row[T], <-chan error) {
-	// Create channels for results and errors
-	results := make(chan Row[T])
-	errors := make(chan error)
-
-	go func() {
-		defer close(results)
-		defer close(errors)
-
-		if len(keys) == 1 {
-			item.getSingleItem(ctx, keys[0], results, errors)
-		} else {
-			item.getBatchItems(ctx, keys, results, errors)
-		}
-	}()
-
-	return results, errors
+func (item *Row[T]) Get(ctx context.Context) error {
+	return item.getSingleItem(ctx)
 }
 
-func (item *Row[T]) getSingleItem(ctx context.Context, key Key, results chan<- Row[T], errors chan<- error) {
+func (item *Row[T]) getSingleItem(ctx context.Context) error {
+	key, err := item.object.Keys(0)
+	if err != nil {
+		return err
+	}
 	// Create the GetItem input
 	getItemInput := &dynamodb.GetItemInput{
 		Key: map[string]types.AttributeValue{
@@ -49,75 +36,72 @@ func (item *Row[T]) getSingleItem(ctx context.Context, key Key, results chan<- R
 	// Call DynamoDB GetItem
 	result, err := item.GetClient(ctx).Dynamo().GetItem(ctx, getItemInput)
 	if err != nil {
-		errors <- err
-		return
+		return err
 	}
 
 	// Unmarshal the result into a Row
 	err = item.unmarshalMap(result.Item)
 	if err != nil {
-		errors <- err
-		return
+		return err
 	}
-
-	results <- *item
+	return nil
 }
 
 func (item *Row[T]) getBatchItems(ctx context.Context, keys []Key, results chan<- Row[T], errors chan<- error) {
 	// Split the keys into batches of 100
-	batches := splitIntoBatches(keys, 100)
+	// batches := splitIntoBatches(keys, 100)
 
-	// Create a wait group to wait for all goroutines to finish
-	var wg sync.WaitGroup
-	wg.Add(len(batches))
+	// // Create a wait group to wait for all goroutines to finish
+	// var wg sync.WaitGroup
+	// wg.Add(len(batches))
 
-	// Process each batch concurrently
-	for _, batch := range batches {
-		go func(batch []Key) {
-			defer wg.Done()
+	// // Process each batch concurrently
+	// for _, batch := range batches {
+	// 	go func(batch []Key) {
+	// 		defer wg.Done()
 
-			// Create the BatchGetItem input
-			batchGetItemInput := item.createBatchGetItemInput(batch)
+	// 		// Create the BatchGetItem input
+	// 		batchGetItemInput := item.createBatchGetItemInput(batch)
 
-			// Call DynamoDB BatchGetItem
-			result, err := item.GetClient(ctx).Dynamo().BatchGetItem(ctx, batchGetItemInput)
-			if err != nil {
-				errors <- err
-				return
-			}
+	// 		// Call DynamoDB BatchGetItem
+	// 		result, err := item.GetClient(ctx).Dynamo().BatchGetItem(ctx, batchGetItemInput)
+	// 		if err != nil {
+	// 			errors <- err
+	// 			return
+	// 		}
 
-			// Unmarshal the results into Rows and send them to the results channel
-			for _, items := range result.Responses {
-				for _, itemMap := range items {
-					var row Row[T]
-					err = attributevalue.UnmarshalMap(itemMap, &row)
-					if err != nil {
-						errors <- err
-						return
-					}
+	// 		// Unmarshal the results into Rows and send them to the results channel
+	// 		for _, items := range result.Responses {
+	// 			for _, itemMap := range items {
+	// 				var row Row[T]
+	// 				err = attributevalue.UnmarshalMap(itemMap, &row)
+	// 				if err != nil {
+	// 					errors <- err
+	// 					return
+	// 				}
 
-					results <- row
-				}
-			}
-		}(batch)
-	}
+	// 				results <- row
+	// 			}
+	// 		}
+	// 	}(batch)
+	// }
 
-	// Wait for all goroutines to finish
-	wg.Wait()
+	// // Wait for all goroutines to finish
+	// wg.Wait()
 }
 
-// splitIntoBatches splits a slice of keys into batches of the specified size.
-func splitIntoBatches(keys []Key, batchSize int) [][]Key {
-	var batches [][]Key
+// // splitIntoBatches splits a slice of keys into batches of the specified size.
+// func splitIntoBatches(keys []Key, batchSize int) [][]Key {
+// 	var batches [][]Key
 
-	for batchSize < len(keys) {
-		keys, batches = keys[batchSize:], append(batches, keys[0:batchSize:batchSize])
-	}
+// 	for batchSize < len(keys) {
+// 		keys, batches = keys[batchSize:], append(batches, keys[0:batchSize:batchSize])
+// 	}
 
-	batches = append(batches, keys)
+// 	batches = append(batches, keys)
 
-	return batches
-}
+// 	return batches
+// }
 
 func (item *Row[T]) createBatchGetItemInput(keys []Key) *dynamodb.BatchGetItemInput {
 	keysMap := make(map[string]types.AttributeValue)

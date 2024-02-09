@@ -11,12 +11,12 @@ import (
 )
 
 type Rowable interface {
-	types.Keyable
+	Keyable
 	types.Typeable
 }
 
 // KeyPostProcessor is a function that allows for post-processing of keys
-type KeyPostProcessor func(ctx context.Context, keys <-chan Key, processedKeys chan<- Key, errs chan<- error)
+type KeyPostProcessor func(ctx context.Context, key Key) (processedKey Key, err error)
 
 type Row[T Rowable] struct {
 	// Table configuration, marshaled to json but not to dynamo
@@ -43,7 +43,7 @@ func (r *Row[T]) Type() string {
 
 func (r *Row[T]) unmarshalMap(m map[string]awstypes.AttributeValue) error {
 	// Create a new map to hold the non-key values
-	err := attributevalue.UnmarshalMap(m, &r.Keys)
+	err := r.Keys.unmarshalKeysFromMap(m)
 	if err != nil {
 		return err
 	}

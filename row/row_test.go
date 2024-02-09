@@ -2,8 +2,11 @@ package row
 
 import (
 	"context"
+	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,12 +15,16 @@ type User struct {
 	Name  string `dynamodbav:"name" json:"name"`
 }
 
-func (u *User) Keys(gsi int) (string, string, error) {
+func (u *User) Keys(gsi int) (Key, error) {
 	switch gsi {
 	case 0:
-		return u.Email, "details", nil
+		return Key{
+			PK:    u.Email,
+			SK:    "details",
+			Index: 0,
+		}, nil
 	default:
-		return "", "", nil
+		return Key{}, nil
 	}
 }
 
@@ -28,12 +35,15 @@ func (u *User) Type() string {
 var ctx = context.Background()
 
 func TestRow(t *testing.T) {
+	os.Setenv("TABLE_NAME", "arctica")
 	t.Run("Save the user", func(t *testing.T) {
 		userRow := NewRow(&User{
 			Email: "test@gmail.com",
 			Name:  "Test",
 		})
-		old, err := userRow.Put(ctx)
+		old, err := userRow.Put(ctx, func(pii *dynamodb.PutItemInput) {
+			pii.ConditionExpression = aws.String("attribute_not_exists(pk)")
+		})
 		if err != nil {
 			t.Error(err)
 		}

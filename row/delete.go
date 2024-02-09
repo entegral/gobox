@@ -2,7 +2,6 @@ package row
 
 import (
 	"context"
-	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -87,52 +86,53 @@ func (item *Row[T]) deleteSingleItem(ctx context.Context, key Key) (Row[T], erro
 
 func (item *Row[T]) deleteBatchItems(ctx context.Context, keys []Key) (<-chan DeleteResult[T], <-chan error) {
 	// Create channels for results and errors
-	results := make(chan DeleteResult[T])
-	errors := make(chan error)
+	// results := make(chan DeleteResult[T])
+	// errors := make(chan error)
 
-	go func() {
-		defer close(results)
-		defer close(errors)
+	// go func() {
+	// 	defer close(results)
+	// 	defer close(errors)
 
-		// Split the keys into batches of 25
-		batches := splitIntoBatches(keys, 25)
+	// 	// Split the keys into batches of 25
+	// 	batches := splitIntoBatches(keys, 25)
 
-		// Create a wait group to wait for all goroutines to finish
-		var wg sync.WaitGroup
-		wg.Add(len(batches))
+	// 	// Create a wait group to wait for all goroutines to finish
+	// 	var wg sync.WaitGroup
+	// 	wg.Add(len(batches))
 
-		// Process each batch concurrently
-		for _, batch := range batches {
-			go func(batch []Key) {
-				defer wg.Done()
+	// 	// Process each batch concurrently
+	// 	for _, batch := range batches {
+	// 		go func(batch []Key) {
+	// 			defer wg.Done()
 
-				// Create the BatchWriteItem input
-				batchWriteItemInput := item.createBatchWriteItemInput(batch)
+	// 			// Create the BatchWriteItem input
+	// 			batchWriteItemInput := item.createBatchWriteItemInput(batch)
 
-				// Call DynamoDB BatchWriteItem
-				result, err := item.GetClient(ctx).Dynamo().BatchWriteItem(ctx, batchWriteItemInput)
-				if err != nil {
-					errors <- err
-					return
-				}
+	// 			// Call DynamoDB BatchWriteItem
+	// 			result, err := item.GetClient(ctx).Dynamo().BatchWriteItem(ctx, batchWriteItemInput)
+	// 			if err != nil {
+	// 				errors <- err
+	// 				return
+	// 			}
 
-				// If there are unprocessed items, send their keys to the results channel
-				unprocessedKeys := make([]Key, 0)
-				for _, writeRequest := range result.UnprocessedItems[item.TableName()] {
-					unprocessedKeys = append(unprocessedKeys, Key{
-						PK: writeRequest.DeleteRequest.Key["pk"].(*types.AttributeValueMemberS).Value,
-						SK: writeRequest.DeleteRequest.Key["sk"].(*types.AttributeValueMemberS).Value,
-					})
-				}
-				results <- DeleteResult[T]{UnprocessedKeys: unprocessedKeys}
-			}(batch)
-		}
+	// 			// If there are unprocessed items, send their keys to the results channel
+	// 			unprocessedKeys := make([]Key, 0)
+	// 			for _, writeRequest := range result.UnprocessedItems[item.TableName()] {
+	// 				unprocessedKeys = append(unprocessedKeys, Key{
+	// 					PK: writeRequest.DeleteRequest.Key["pk"].(*types.AttributeValueMemberS).Value,
+	// 					SK: writeRequest.DeleteRequest.Key["sk"].(*types.AttributeValueMemberS).Value,
+	// 				})
+	// 			}
+	// 			results <- DeleteResult[T]{UnprocessedKeys: unprocessedKeys}
+	// 		}(batch)
+	// 	}
 
-		// Wait for all goroutines to finish
-		wg.Wait()
-	}()
+	// 	// Wait for all goroutines to finish
+	// 	wg.Wait()
+	// }()
 
-	return results, errors
+	// return results, errors
+	return nil, nil
 }
 
 func (item *Row[T]) createBatchWriteItemInput(keys []Key) *dynamodb.BatchWriteItemInput {

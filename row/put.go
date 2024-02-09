@@ -2,7 +2,6 @@ package row
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -21,41 +20,21 @@ func (item *Row[T]) Put(ctx context.Context, modifyFunc func(*dynamodb.PutItemIn
 		return oldRow, err
 	}
 
-	// Create channels for the keys, post-processed keys, and errors
-	keys := make(chan Key)
-	processedKeys := make(chan Key)
-	errs := make(chan error)
-
 	// Start a goroutine to generate the keys
-	go item.GenerateKeys(ctx, keys, errs)
+	_, errs := item.GenerateKeys(ctx)
 
-	// Start a goroutine to post-process the keys
-	go item.postProcessKeys(ctx, keys, processedKeys, errs)
-
-	// Process the post-processed keys and errors
-	for key := range processedKeys {
-		pkKey := "pk"
-		skKey := "sk"
-		if key.Index > 0 {
-			pkKey += fmt.Sprintf("%d", key.Index)
-			skKey += fmt.Sprintf("%d", key.Index)
-		}
-		rowData[pkKey] = &awstypes.AttributeValueMemberS{Value: key.PK}
-		rowData[skKey] = &awstypes.AttributeValueMemberS{Value: key.SK}
-
-		// ensure the item's key struct is updated with the new keys
-		item.Keys.SetKey(key)
+	// check errors
+	for err := range errs {
+		return oldRow, err
 	}
 
-	// Check for any errors
-	for err := range errs {
+	err = item.Keys.MarshalMap(rowData)
+	if err != nil {
 		return oldRow, err
 	}
 
 	// Create the PutItem input
 	putItemInput := &dynamodb.PutItemInput{
-		Item:         rowData,
-		TableName:    aws.String(item.TableName()),
 		ReturnValues: awstypes.ReturnValueAllOld,
 	}
 
