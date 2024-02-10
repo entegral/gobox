@@ -21,17 +21,13 @@ func (item *Row[T]) Put(ctx context.Context, modifyFunc func(*dynamodb.PutItemIn
 	}
 
 	// Start a goroutine to generate the keys
-	_, errs := item.GenerateKeys(ctx)
+	err = item.GenerateKeys(ctx)
 
-	// check errors
-	for err := range errs {
-		return oldRow, err
-	}
-
-	err = item.Keys.MarshalMap(rowData)
 	if err != nil {
 		return oldRow, err
 	}
+
+	item.Keys.AddKeysToMap(rowData)
 
 	// Create the PutItem input
 	putItemInput := &dynamodb.PutItemInput{

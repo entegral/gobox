@@ -13,23 +13,14 @@ type User struct {
 	Name  string `dynamodbav:"name" json:"name"`
 }
 
-func (u *User) Keys(gsi int) (Key, error) {
+func (u *User) Keys(gsi int) (string, string, error) {
 	switch gsi {
 	case 0:
-		return Key{
-			PK:    u.Email,
-			SK:    "details",
-			Index: 0,
-		}, nil
+		return u.Email, "details", nil
 	case 1:
-		return Key{
-			PK:    u.Name,
-			SK:    "details",
-			Index: 1,
-		}, nil
-	default:
-		return Key{}, nil
+		return u.Name, "details", nil
 	}
+	return "", "", nil
 }
 
 func (u *User) Type() string {
@@ -60,10 +51,10 @@ func TestRow(t *testing.T) {
 			t.Error(err)
 		}
 		assert.Equal(t, "Test", userRow.Object().Name)
-		assert.Equal(t, userRow.object.Email, userRow.Keys.PrimaryKey.PK)
-		assert.Equal(t, "details", userRow.Keys.PrimaryKey.SK)
-		assert.Equal(t, "Test", userRow.Keys.GSI1.PK)
-		assert.Equal(t, "details", userRow.Keys.GSI1.SK)
+		assert.Equal(t, "/r#(User)/rPk(test@gmail.com)", userRow.Keys.Pk)
+		assert.Equal(t, "/rSk(details)", userRow.Keys.Sk)
+		assert.Equal(t, "/r#(User)/rPk(Test)", *userRow.Keys.Pk1)
+		assert.Equal(t, "/rSk(details)", *userRow.Keys.Sk1)
 	})
 	t.Run("Delete the user", func(t *testing.T) {
 		userRow := NewRow(&User{
@@ -73,7 +64,10 @@ func TestRow(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		assert.Equal(t, "Test", userRow.Object().Name)
+		assert.Nil(t, err)
+		err = userRow.Get(ctx)
+		assert.Nil(t, err)
+		assert.Nil(t, userRow.Object())
 	})
 
 }

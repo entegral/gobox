@@ -43,7 +43,7 @@ func (r *Row[T]) Type() string {
 
 func (r *Row[T]) unmarshalMap(m map[string]awstypes.AttributeValue) error {
 	// Create a new map to hold the non-key values
-	err := r.Keys.unmarshalKeysFromMap(m)
+	err := attributevalue.UnmarshalMap(m, &r.Keys)
 	if err != nil {
 		return err
 	}

@@ -27,9 +27,9 @@ func (is *ItemSet[T]) GenerateKeys(ctx context.Context) (<-chan Key, <-chan erro
 				errs <- ctx.Err()
 				return
 			default:
-				_, keygenErrs := item.GenerateKeys(ctx)
-				for err := range keygenErrs {
-					errs <- err
+				keygenErrs := item.GenerateKeys(ctx)
+				if keygenErrs != nil {
+					errs <- keygenErrs
 					return
 				}
 			}

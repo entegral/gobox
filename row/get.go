@@ -16,18 +16,15 @@ func (item *Row[T]) Get(ctx context.Context) error {
 }
 
 func (item *Row[T]) getSingleItem(ctx context.Context) error {
-	key, err := item.object.Keys(0)
-	if err != nil {
-		return err
-	}
+	item.GenerateKeys(ctx)
 	// Create the GetItem input
 	getItemInput := &dynamodb.GetItemInput{
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{
-				Value: key.PK,
+				Value: item.Keys.Pk,
 			},
 			"sk": &types.AttributeValueMemberS{
-				Value: key.SK,
+				Value: item.Keys.Sk,
 			},
 		},
 		TableName: aws.String(item.TableName()),

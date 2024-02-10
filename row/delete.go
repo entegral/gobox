@@ -27,18 +27,16 @@ func (item *Row[T]) Delete(ctx context.Context) error {
 }
 
 func (item *Row[T]) deleteSingleItem(ctx context.Context) error {
-	key, err := item.object.Keys(0)
-	if err != nil {
-		return err
-	}
+	item.GenerateKeys(ctx)
+
 	// Create the DeleteItem input
 	deleteItemInput := &dynamodb.DeleteItemInput{
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{
-				Value: key.PK,
+				Value: item.Keys.Pk,
 			},
 			"sk": &types.AttributeValueMemberS{
-				Value: key.SK,
+				Value: item.Keys.Sk,
 			},
 		},
 		TableName:    aws.String(item.TableName()),
