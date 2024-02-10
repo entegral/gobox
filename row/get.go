@@ -37,11 +37,7 @@ func (item *Row[T]) getSingleItem(ctx context.Context) error {
 	}
 
 	// Unmarshal the result into a Row
-	err = item.unmarshalMap(result.Item)
-	if err != nil {
-		return err
-	}
-	return nil
+	return item.unmarshalMap(result.Item)
 }
 
 func (item *Row[T]) getBatchItems(ctx context.Context, keys []Key, results chan<- Row[T], errors chan<- error) {

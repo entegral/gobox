@@ -50,6 +50,6 @@ func (item *Row[T]) Put(ctx context.Context, modifyFunc func(*dynamodb.PutItemIn
 	}
 
 	// Unmarshal the old item into a Row
-	err = attributevalue.UnmarshalMap(result.Attributes, &oldRow)
+	err = oldRow.unmarshalMap(result.Attributes)
 	return oldRow, err
 }

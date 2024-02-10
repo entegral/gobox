@@ -34,13 +34,23 @@ func TestRow(t *testing.T) {
 	t.Run("Save the user", func(t *testing.T) {
 		userRow := NewRow(&User{
 			Email: "test@gmail.com",
-			Name:  "Test",
+			Name:  "Test2",
 		})
-		old, err := userRow.Put(ctx, nil)
+		_, err := userRow.Put(ctx, nil)
 		if err != nil {
 			t.Error(err)
 		}
-		t.Log(old)
+	})
+	t.Run("Save the user, receiving old user as return value", func(t *testing.T) {
+		userRow := NewRow(&User{
+			Email: "test@gmail.com",
+			Name:  "Test",
+		})
+		oldUser, err := userRow.Put(ctx, nil)
+		if err != nil {
+			t.Error(err)
+		}
+		assert.Equal(t, "Test2", oldUser.Object().Name)
 	})
 	t.Run("Get the user", func(t *testing.T) {
 		userRow := NewRow(&User{
@@ -65,9 +75,7 @@ func TestRow(t *testing.T) {
 			t.Error(err)
 		}
 		assert.Nil(t, err)
-		err = userRow.Get(ctx)
-		assert.Nil(t, err)
-		assert.Nil(t, userRow.Object())
+		assert.Equal(t, "Test", userRow.Object().Name)
 	})
 
 }

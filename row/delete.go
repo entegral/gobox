@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -50,12 +49,8 @@ func (item *Row[T]) deleteSingleItem(ctx context.Context) error {
 	}
 
 	// Unmarshal the result into a Row
-	err = attributevalue.UnmarshalMap(result.Attributes, &item)
-	if err != nil {
-		return err
-	}
+	return item.unmarshalMap(result.Attributes)
 
-	return nil
 }
 
 func (item *Row[T]) deleteBatchItems(ctx context.Context, keys []Key) (<-chan DeleteResult[T], <-chan error) {
