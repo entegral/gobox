@@ -108,7 +108,6 @@ func (k *Keys) GenerateKeys(item Rowable) error {
 			if err != nil {
 				return err
 			}
-
 			switch i {
 			case 0:
 				k.Pk = pk

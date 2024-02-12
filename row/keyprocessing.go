@@ -10,8 +10,8 @@ import (
 
 // Define a struct to hold the keys and the index
 type Key struct {
-	PK       string
-	SK       string
+	Pk       string
+	Sk       string
 	Index    int
 	IsEntity bool
 }
