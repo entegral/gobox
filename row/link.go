@@ -25,10 +25,10 @@ func (l Link[LinkType, T]) GenerateEntityKeys(ctx context.Context) ([]Key, error
 	return keys, nil
 }
 
-// Link is a struct that represents a link between multiple entities
-// It is used to represent a many-to-many relationship between entities
-// The key of the link is the combination of the keys of the entities, applied in order
-// The link can be queried on either the entityKeys-index or the entityKeys-index
+// Link is a struct that represents a link between multiple entities.
+// It is used to represent a many-to-many relationship between entities.
+// The key of the link is the combination of the keys of the entities, applied in order.
+// The link can be queried on either the entityKeys-index or the entityKeys-index.
 // The partition keys of the primary composite key, and both GSIs, contain type
 // information. This is used to make it easier to query for all links of a certain type.
 type Link[LinkType, T Rowable] struct {
@@ -89,6 +89,7 @@ func (l Link[T0, T1]) GenerateKeys(ctx context.Context) ([]Key, error) {
 // After the operation, it unmarshals the returned item(s) into the Link. If multiple items are returned from the Query operation,
 // it unmarshals the first item into the Link, and returns the keys of the remaining items in the additionalItems slice.
 // If an error occurs at any point, it returns the error.
+// It also returns a nextPage Key that can be used to continue the query from where it left off.
 func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems []Link[T0, T1], nextPage *Key, err error) {
 	// wrap the key with the type of the link to make sure only links to this type are returned
 	pk, err := prependWithRowType(&l.Row, key.Pk)
