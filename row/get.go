@@ -3,7 +3,6 @@ package row
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -27,7 +26,7 @@ func (item *Row[T]) getSingleItem(ctx context.Context) error {
 				Value: item.Keys.Sk,
 			},
 		},
-		TableName: aws.String(item.TableName()),
+		TableName: item.TableName(),
 	}
 
 	// Call DynamoDB GetItem

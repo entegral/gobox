@@ -3,7 +3,6 @@ package row
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -41,7 +40,7 @@ func (item *Row[T]) Put(ctx context.Context, modifyFunc func(*dynamodb.PutItemIn
 
 	// Overwrite the Item and TableName fields to prevent modification
 	putItemInput.Item = rowData
-	putItemInput.TableName = aws.String(item.TableName())
+	putItemInput.TableName = item.TableName()
 
 	// Call DynamoDB PutItem
 	result, err := item.GetClient(ctx).Dynamo().PutItem(ctx, putItemInput)

@@ -25,16 +25,13 @@ func (item *Row[T]) Query(ctx context.Context, key Key) (<-chan Row[T], <-chan e
 		defer close(results)
 		defer close(errs)
 
-		// Get the index name from the key
-		indexName := GetIndexName(key)
-
 		// Create the key for DynamoDB
 		dynamoKey := map[string]awstypes.AttributeValue{
 			":pk": &awstypes.AttributeValueMemberS{
-				Value: key.PK,
+				Value: key.Pk,
 			},
 			":sk": &awstypes.AttributeValueMemberS{
-				Value: key.SK,
+				Value: key.Sk,
 			},
 		}
 
@@ -42,8 +39,8 @@ func (item *Row[T]) Query(ctx context.Context, key Key) (<-chan Row[T], <-chan e
 		queryInput := &dynamodb.QueryInput{
 			ExpressionAttributeValues: dynamoKey,
 			KeyConditionExpression:    aws.String("pk = :pk and sk = :sk"),
-			TableName:                 aws.String(item.TableName()),
-			IndexName:                 aws.String(indexName),
+			TableName:                 item.TableName(),
+			IndexName:                 key.IndexName(),
 		}
 
 		// Call DynamoDB Query

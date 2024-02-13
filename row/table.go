@@ -12,12 +12,12 @@ type Table struct {
 	client    *clients.Client
 }
 
-func (t *Table) TableName() string {
+func (t *Table) TableName() *string {
 	// If the table name is not set, use the value provided from TABLE_NAME
 	if t.tableName == "" {
-		return os.Getenv("TABLE_NAME")
+		t.tableName = os.Getenv("TABLE_NAME")
 	}
-	return t.tableName
+	return &t.tableName
 }
 
 func (t *Table) SetTableName(tableName string) {

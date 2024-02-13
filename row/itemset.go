@@ -2,6 +2,7 @@ package row
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -46,11 +47,11 @@ type PutResult[T Rowable] struct {
 func (set *ItemSet[T]) BatchPut(ctx context.Context) (<-chan PutResult[T], <-chan error) {
 	// Create channels for results and errors
 	results := make(chan PutResult[T])
-	errors := make(chan error)
+	errs := make(chan error)
 
 	go func() {
 		defer close(results)
-		defer close(errors)
+		defer close(errs)
 
 		// Split the items into batches of 25
 		batches := splitIntoBatches(set.Items, 25)
@@ -69,7 +70,7 @@ func (set *ItemSet[T]) BatchPut(ctx context.Context) (<-chan PutResult[T], <-cha
 				for i, item := range batch {
 					itemData, err := attributevalue.MarshalMap(item)
 					if err != nil {
-						errors <- err
+						errs <- err
 						return
 					}
 					writeRequests[i] = types.WriteRequest{
@@ -78,17 +79,21 @@ func (set *ItemSet[T]) BatchPut(ctx context.Context) (<-chan PutResult[T], <-cha
 						},
 					}
 				}
-
+				tablename := batch[0].TableName()
+				if tablename == nil {
+					errs <- errors.New("TableName is nil for item: " + batch[0].Type())
+					return
+				}
 				input := &dynamodb.BatchWriteItemInput{
 					RequestItems: map[string][]types.WriteRequest{
-						batch[0].TableName(): writeRequests,
+						*tablename: writeRequests,
 					},
 				}
 
 				// Call DynamoDB BatchWriteItem
 				resp, err := batch[0].GetClient(ctx).Dynamo().BatchWriteItem(ctx, input)
 				if err != nil {
-					errors <- err
+					errs <- err
 					return
 				}
 
@@ -100,7 +105,7 @@ func (set *ItemSet[T]) BatchPut(ctx context.Context) (<-chan PutResult[T], <-cha
 							var item Row[T]
 							err := attributevalue.UnmarshalMap(writeRequest.PutRequest.Item, &item)
 							if err != nil {
-								errors <- err
+								errs <- err
 								return
 							}
 							unprocessedItems = append(unprocessedItems, item)
@@ -116,7 +121,7 @@ func (set *ItemSet[T]) BatchPut(ctx context.Context) (<-chan PutResult[T], <-cha
 		wg.Wait()
 	}()
 
-	return results, errors
+	return results, errs
 }
 
 // splitIntoBatches splits a slice of Row[T] into batches of the specified size.

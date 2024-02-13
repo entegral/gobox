@@ -8,14 +8,6 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
-// Define a struct to hold the keys and the index
-type Key struct {
-	Pk       string
-	Sk       string
-	Index    int
-	IsEntity bool
-}
-
 type ErrInvalidKeySegment struct {
 	label string
 	value string
