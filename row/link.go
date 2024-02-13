@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/entegral/gobox/clients"
+	"github.com/entegral/gobox/types"
 )
 
 // GenerateEntityKeys generates keys for each entity in the link. It iterates over the entities,
@@ -31,8 +32,11 @@ func (l Link[LinkType, T]) GenerateEntityKeys(ctx context.Context) ([]Key, error
 // The link can be queried on either the entityKeys-index or the entityKeys-index.
 // The partition keys of the primary composite key, and both GSIs, contain type
 // information. This is used to make it easier to query for all links of a certain type.
-type Link[LinkType, T Rowable] struct {
-	Row[LinkType]
+type Link[LinkType types.Typeable, T Rowable] struct {
+	Keys
+	Table
+
+	row LinkType
 
 	// EntityKeys is a slice of keys of the entities in the link
 	EntityKeys []Key
@@ -48,7 +52,7 @@ type Link[LinkType, T Rowable] struct {
 func (l Link[T0, T1]) GenerateKeys(ctx context.Context) ([]Key, error) {
 	keys, err := l.GenerateEntityKeys(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Error generating link entity keys for link row of type: %s. Error: %w", l.Row.Type(), err)
+		return nil, fmt.Errorf("Error generating link entity keys for link row of type: %s. Error: %w", l.row.Type(), err)
 	}
 
 	// we need to do two things with the keys:
@@ -61,26 +65,38 @@ func (l Link[T0, T1]) GenerateKeys(ctx context.Context) ([]Key, error) {
 	for _, key := range keys {
 		pkSeg, err := addKeySegment(rowPk, key.Pk)
 		if err != nil {
-			return nil, fmt.Errorf("Error adding key segment to primary key for link row of type: %s. Error: %w", l.Row.Type(), err)
+			return nil, fmt.Errorf("Error adding key segment to primary key for link row of type: %s. Error: %w", l.row.Type(), err)
 		}
 		pk += pkSeg
 
 		// also wrap the entity Pk with the type of the link
-		key.Pk, err = prependWithRowType(&l.Row, key.Pk)
+		key.Pk, err = prependWithRowType(l.row, key.Pk)
 		if err != nil {
-			return nil, fmt.Errorf("Error prepending row type to entity Pk for link row of type: %s. Error: %w", l.Row.Type(), err)
+			return nil, fmt.Errorf("Error prepending row type to entity Pk for link row of type: %s. Error: %w", l.row.Type(), err)
 		}
 
 		skSeg, err := addKeySegment(rowSk, key.Sk)
 		if err != nil {
-			return nil, fmt.Errorf("Error adding key segment to primary key for link row of type: %s. Error: %w", l.Row.Type(), err)
+			return nil, fmt.Errorf("Error adding key segment to primary key for link row of type: %s. Error: %w", l.row.Type(), err)
 		}
 		sk += skSeg
 	}
 
 	// prefix the primary key with the type of the link
-	l.Pk, err = prependWithRowType(&l.Row, l.Pk)
+	l.Pk, err = prependWithRowType(l.row, l.Pk)
 	return keys, nil
+}
+
+func (r *Link[T0, T1]) unmarshalMap(m map[string]awstypes.AttributeValue) error {
+	// Create a new map to hold the non-key values
+	err := attributevalue.UnmarshalMap(m, &r.Keys)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal the non-key values into the Object
+	err = attributevalue.UnmarshalMap(m, &r.row)
+	return err
 }
 
 // LoadFromKey loads a Link from DynamoDB using a provided key. It determines which index to use based on the key's Index field,
@@ -92,9 +108,9 @@ func (l Link[T0, T1]) GenerateKeys(ctx context.Context) ([]Key, error) {
 // It also returns a nextPage Key that can be used to continue the query from where it left off.
 func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems []Link[T0, T1], nextPage *Key, err error) {
 	// wrap the key with the type of the link to make sure only links to this type are returned
-	pk, err := prependWithRowType(&l.Row, key.Pk)
+	pk, err := prependWithRowType(l.row, key.Pk)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error prepending row type to entity Pk for link row of type: %s. Error: %w", l.Row.Type(), err)
+		return nil, nil, fmt.Errorf("Error prepending row type to entity Pk for link row of type: %s. Error: %w", l.row.Type(), err)
 	}
 	client := clients.GetDefaultClient(ctx)
 	if key.Index == 0 {
@@ -107,11 +123,11 @@ func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems
 		}
 		out, getErr := client.Dynamo().GetItem(ctx, &i)
 		if getErr != nil {
-			return nil, nil, fmt.Errorf("Error getting link row of type: %s. Error: %w", l.Row.Type(), getErr)
+			return nil, nil, fmt.Errorf("Error getting link row of type: %s. Error: %w", l.row.Type(), getErr)
 		}
 		unMarshalErr := l.unmarshalMap(out.Item)
 		if unMarshalErr != nil {
-			return nil, nil, fmt.Errorf("Error unmarshaling link row of type: %s. Error: %w", l.Row.Type(), unMarshalErr)
+			return nil, nil, fmt.Errorf("Error unmarshaling link row of type: %s. Error: %w", l.row.Type(), unMarshalErr)
 		}
 		return nil, nil, nil
 	}
@@ -128,21 +144,21 @@ func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems
 	}
 	out, err := client.Dynamo().Query(ctx, &i)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error querying link row of type: %s. Error: %w", l.Row.Type(), err)
+		return nil, nil, fmt.Errorf("Error querying link row of type: %s. Error: %w", l.row.Type(), err)
 	}
 	if len(out.Items) <= 0 {
-		return nil, nil, fmt.Errorf("No link row of type: %s found", l.Row.Type())
+		return nil, nil, fmt.Errorf("No link row of type: %s found", l.row.Type())
 	}
 	if len(out.Items) == 1 {
 		err = l.unmarshalMap(out.Items[0])
 		if err != nil {
-			return nil, nil, fmt.Errorf("Error unmarshaling link row of type: %s. Error: %w", l.Row.Type(), err)
+			return nil, nil, fmt.Errorf("Error unmarshaling link row of type: %s. Error: %w", l.row.Type(), err)
 		}
 	}
 	restOfItems := out.Items[1:]
 	err = attributevalue.UnmarshalListOfMaps(restOfItems, &additionalItems)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error unmarshaling additional link rows of type: %s. Error: %w", l.Row.Type(), err)
+		return nil, nil, fmt.Errorf("Error unmarshaling additional link rows of type: %s. Error: %w", l.row.Type(), err)
 	}
 	if out.LastEvaluatedKey != nil {
 		key.LastEvaluatedKey = out.LastEvaluatedKey
@@ -154,9 +170,8 @@ func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems
 // NewLink creates a new Link with the provided link type and entities. It creates a new Row with the link type,
 // and assigns the entities to the Entities field of the Link.
 func NewLink[LinkType, T Rowable](link LinkType, entities []Row[T]) Link[LinkType, T] {
-	row := NewRow(link)
 	return Link[LinkType, T]{
-		Row:      row,
+		row:      link,
 		Entities: entities,
 	}
 }

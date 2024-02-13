@@ -1,33 +1,11 @@
 package row
 
 import (
-	"context"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-type User struct {
-	Email string `dynamodbav:"email" json:"email"`
-	Name  string `dynamodbav:"name" json:"name"`
-}
-
-func (u *User) Keys(gsi int) (string, string, error) {
-	switch gsi {
-	case 0:
-		return u.Email, "details", nil
-	case 1:
-		return u.Name, "details", nil
-	}
-	return "", "", nil
-}
-
-func (u *User) Type() string {
-	return "User"
-}
-
-var ctx = context.Background()
 
 func TestRow(t *testing.T) {
 	os.Setenv("TABLE_NAME", "arctica")
@@ -36,7 +14,7 @@ func TestRow(t *testing.T) {
 			Email: "test@gmail.com",
 			Name:  "Test2",
 		})
-		_, err := userRow.Put(ctx, nil)
+		_, err := userRow.Put(tstCtx, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -46,7 +24,7 @@ func TestRow(t *testing.T) {
 			Email: "test@gmail.com",
 			Name:  "Test",
 		})
-		oldUser, err := userRow.Put(ctx, nil)
+		oldUser, err := userRow.Put(tstCtx, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -56,7 +34,7 @@ func TestRow(t *testing.T) {
 		userRow := NewRow(&User{
 			Email: "test@gmail.com",
 		})
-		err := userRow.Get(ctx)
+		err := userRow.Get(tstCtx)
 		if err != nil {
 			t.Error(err)
 		}
@@ -70,7 +48,7 @@ func TestRow(t *testing.T) {
 		userRow := NewRow(&User{
 			Email: "test@gmail.com",
 		})
-		err := userRow.Delete(ctx)
+		err := userRow.Delete(tstCtx)
 		if err != nil {
 			t.Error(err)
 		}
