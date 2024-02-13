@@ -76,9 +76,17 @@ func (l Link[T0, T1]) GenerateKeys(ctx context.Context) ([]Key, error) {
 	return keys, nil
 }
 
+// LoadFromKey is a method that loads a Link from DynamoDB using a provided key.
+// It first determines which index to use based on the key's Index field.
+// Then it wraps the key with the type of the link and performs a GetItem or Query operation on DynamoDB.
+// If the key's Index is 0, it performs a GetItem operation.
+// If the key's Index is not 0, it performs a Query operation on the appropriate GSI.
+// After the operation, it unmarshals the returned item(s) into the Link.
+// If multiple items are returned from the Query operation, it unmarshals the first item into the Link,
+// and returns the keys of the remaining items in the additionalItems slice.
+// If an error occurs at any point, it returns the error.
 func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems []Key, err error) {
-	// already have the key, just need to determine which index to use,
-	// and then wrap the key with the type of this link
+	// wrap the key with the type of the link to make sure only links to this type are returned
 	pk, err := prependWithRowType(&l.Row, key.Pk)
 	if err != nil {
 		return nil, fmt.Errorf("Error prepending row type to entity Pk for link row of type: %s. Error: %w", l.Row.Type(), err)
@@ -102,7 +110,7 @@ func (l Link[T0, T1]) LoadFromKey(ctx context.Context, key Key) (additionalItems
 		}
 		return nil, nil
 	}
-	kce := "pk = :pk AND sk = :sk"
+	kce := "pk = :pk AND begins_with(sk, :sk)"
 	i := dynamodb.QueryInput{
 		TableName:              l.TableName(),
 		IndexName:              key.IndexName(),
