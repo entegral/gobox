@@ -1,36 +1,40 @@
 package keys
 
-type PrimaryKey struct {
+import "fmt"
+
+type Key struct {
+	pkKey        string
+	skKey        string
 	PartitionKey string `json:"pk"`
 	SortKey      string `json:"sk"`
+	IsEntity     bool   `json:"isEntity"`
 }
 
-type GSI1 struct {
-	Pk1 string `json:"pk1"`
-	Sk1 string `json:"sk1"`
+func (k *Key) SetIndex(pkKey, skKey string) {
+	k.pkKey = pkKey
+	k.skKey = skKey
 }
 
-type GSI2 struct {
-	Pk2 string `json:"pk2"`
-	Sk2 string `json:"sk2"`
+func (k *Key) IndexName() *string {
+	if k.pkKey == "" && k.skKey == "" {
+		return nil
+	}
+	s := fmt.Sprintf("%s-%s-index", k.pkKey, k.skKey)
+	return &s
 }
 
-type GSI3 struct {
-	Pk3 string `json:"pk3"`
-	Sk3 string `json:"sk3"`
+func NewGSIKey(pkKey, skKey, partitionKey, sortKey string) Key {
+	return Key{
+		pkKey:        pkKey,
+		skKey:        skKey,
+		PartitionKey: partitionKey,
+		SortKey:      sortKey,
+	}
 }
 
-type GSI4 struct {
-	Pk4 string `json:"pk4"`
-	Sk4 string `json:"sk4"`
-}
-
-type GSI5 struct {
-	Pk5 string `json:"pk5"`
-	Sk5 string `json:"sk5"`
-}
-
-type GSI6 struct {
-	Pk6 string `json:"pk6"`
-	Sk6 string `json:"sk6"`
+func NewPrimaryKey(partitionKey, sortKey string) Key {
+	return Key{
+		PartitionKey: partitionKey,
+		SortKey:      sortKey,
+	}
 }

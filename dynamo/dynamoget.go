@@ -16,16 +16,18 @@ import (
 
 // GetItem gets a row from DynamoDB. The row must implement the Keyable
 // interface.
-func GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	tn := types.CheckTableable(ctx, row)
-	return getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tn, row)
+func (d *DBManager) GetItem(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
+	return d.getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
-func GetItemWithTablename(ctx context.Context, tablename string, row types.Linkable) (*dynamodb.GetItemOutput, error) {
-	return getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), tablename, row)
+func (d *DBManager) GetItemWithTablename(ctx context.Context, row types.Linkable) (*dynamodb.GetItemOutput, error) {
+	if d.Client != nil {
+		return d.getItemPrependTypeWithClient(ctx, d.Client, row)
+	}
+	return d.getItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
-func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, tablename string, row types.Linkable) (*dynamodb.GetItemOutput, error) {
+func (d *DBManager) getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.GetItemOutput, error) {
 	pk, sk, err := row.Keys(0)
 	if err != nil {
 		return nil, err
@@ -49,6 +51,7 @@ func getItemPrependTypeWithClient(ctx context.Context, client *clients.Client, t
 	if checkTesting() {
 		rcc = awstypes.ReturnConsumedCapacityTotal
 	}
+	tablename := d.TableName(ctx)
 	out, err := client.Dynamo().GetItem(ctx, &dynamodb.GetItemInput{
 		TableName:              aws.String(tablename),
 		Key:                    key,

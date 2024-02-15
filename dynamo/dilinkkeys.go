@@ -1,17 +1,33 @@
 package dynamo
 
+import (
+	"errors"
+	"reflect"
+)
+
 func (m *DiLink[T0, T1]) GenerateDiLinkKeys() (string, string, error) {
+
 	// generate keys for the 0th entity
 	_, _, err := m.GenerateMonoLinkKeys()
 	if err != nil {
 		return "", "", err
 	}
 
-	// Generate second part of the key using the entity1 type, pk, and sk
-	// to ensure uniqueness of the key
-	e1pk, e1sk, err := m.Entity1.Keys(0)
-	if err != nil {
-		return "", "", err
+	var e1pk, e1sk string
+
+	if reflect.ValueOf(m.Entity1).IsNil() {
+		if m.E1pk == "" && m.E1sk == "" {
+			return "", "", errors.New("Entity1 is nil and E1pk and E1sk are empty")
+		}
+		e1pk = extractKeys(rowPk, m.E1pk)
+		e1sk = m.E1sk
+	} else {
+		// Generate second part of the key using the entity1 type, pk, and sk
+		// to ensure uniqueness of the key
+		e1pk, e1sk, err = m.Entity1.Keys(0)
+		if err != nil {
+			return "", "", err
+		}
 	}
 
 	linkedE1Pk, errPk := addKeySegment(rowType, m.Entity1.Type())

@@ -80,8 +80,9 @@ func (t *UnixTime) UpdateTTL(newTime time.Time) {
 // by itself, but rather to be embedded into other types. After embedding,
 // you should implement the TableName and Keys methods on the parent type.
 type Row struct {
-	keys.PrimaryKey
+	keys.Key
 	keys.GSI
+	Shard
 
 	// TTL is the UTC time that this record will expire.
 	TTL *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
@@ -111,8 +112,4 @@ func (r *Row) Keys(gsi int) (string, string, error) {
 	r.PartitionKey = uuid.UUIDv4()
 	r.SortKey = "row"
 	return r.PartitionKey, r.SortKey, nil
-}
-
-func (r *Row) MaxShard() int {
-	return 100
 }

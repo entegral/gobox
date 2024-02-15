@@ -3,6 +3,7 @@ package dynamo
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"unicode"
@@ -21,11 +22,24 @@ func (g EntityGSI) String() string {
 
 // GenerateMonoLinkKeys generates the composite key for the monolink.
 func (m *MonoLink[T0]) GenerateMonoLinkKeys() (string, string, error) {
+
 	m.PartitionKey = ""
 	m.SortKey = ""
-	e0pk, e0sk, err := m.Entity0.Keys(0)
-	if err != nil {
-		return "", "", err
+
+	var e0pk, e0sk string
+	var err error
+
+	if reflect.ValueOf(m.Entity0).IsNil() {
+		if m.E0pk == "" && m.E0sk == "" {
+			return "", "", errors.New("Entity0 is nil and E0pk and E0sk are empty")
+		}
+		e0pk = m.E0pk
+		e0sk = m.E0sk
+	} else {
+		e0pk, e0sk, err = m.Entity0.Keys(0)
+		if err != nil {
+			return "", "", err
+		}
 	}
 
 	linkedE0Pk, err := addKeySegment(rowType, m.Entity0.Type())

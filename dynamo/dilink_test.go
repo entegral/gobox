@@ -223,6 +223,7 @@ func TestDiLink(t *testing.T) {
 					// now we should get an empty array
 					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
 					t.Log("entities:", entities)
+					t.Log("err:", err)
 					assert.IsType(t, &ErrEntityNotFound[*Car]{}, err)
 					assert.Equal(t, 0, len(entities))
 				})

@@ -16,11 +16,14 @@ import (
 // PutItem puts a row into DynamoDB. The row must implement the
 // Keyable interface. This method uses the default client. If you need to use a specific
 // client, use PutItemWithClient instead, or use the client.SetDefaultClient method.
-func PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
-	return putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
+func (d *DBManager) PutItem(ctx context.Context, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+	if d.Client != nil {
+		return d.putItemPrependTypeWithClient(ctx, d.Client, row)
+	}
+	return d.putItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
-func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.PutItemOutput, error) {
+func (d *DBManager) putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.PutItemOutput, error) {
 	pk, sk, err := row.Keys(0)
 	if err != nil {
 		return nil, err
@@ -41,7 +44,7 @@ func putItemPrependTypeWithClient(ctx context.Context, client *clients.Client, r
 			Value: getTypeShardKey(row.Type(), row.MaxShard()),
 		}
 	}
-	tn := row.TableName(ctx)
+	tn := d.TableName(ctx)
 	return putItemWithClient(ctx, client, tn, av)
 }
 

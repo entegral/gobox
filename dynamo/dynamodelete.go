@@ -13,15 +13,14 @@ import (
 // DeleteItem deletes a row from DynamoDB. The row must implement the Keyable
 // interface. This method uses the default client. If you need to use a specific
 // client, use DeleteItemWithClient instead, or use the client.SetDefaultClient method.
-func DeleteItem(ctx context.Context, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
-	return deleteItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
+func (d *DBManager) DeleteItem(ctx context.Context, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
+	if d.Client != nil {
+		return d.deleteItemPrependTypeWithClient(ctx, d.Client, row)
+	}
+	return d.deleteItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
 }
 
-func DeleteItemPrependType(ctx context.Context, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
-	return deleteItemPrependTypeWithClient(ctx, clients.GetDefaultClient(ctx), row)
-}
-
-func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
+func (d *DBManager) deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client, row types.Linkable) (*dynamodb.DeleteItemOutput, error) {
 	pk, sk, err := row.Keys(0)
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func deleteItemPrependTypeWithClient(ctx context.Context, client *clients.Client
 		"pk": &awstypes.AttributeValueMemberS{Value: properPk},
 		"sk": &awstypes.AttributeValueMemberS{Value: sk},
 	}
-	tn := types.CheckTableable(ctx, row)
+	tn := d.TableName(ctx)
 	return client.Dynamo().DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName:              &tn,
 		Key:                    key,

@@ -26,6 +26,7 @@ func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Ty
 	}
 	var entities []T1
 	for _, link := range links {
+		link.Entity0 = m.Entity0
 		loaded, err := link.LoadEntity1(ctx)
 		if err != nil {
 			return nil, err
