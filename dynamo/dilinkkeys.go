@@ -31,22 +31,22 @@ func (m *DiLink[T0, T1]) GenerateDiLinkKeys() (string, string, error) {
 	if errPk != nil {
 		return "", "", errPk
 	}
-	m.Pk += seg
+	m.PartitionKey += seg
 	seg, errPk2 = addKeySegment(entity1pk, e1pk)
 	if errPk2 != nil {
 		return "", "", errPk2
 	}
-	m.Pk += seg
+	m.PartitionKey += seg
 	seg, errSk := addKeySegment(entity1sk, e1sk)
 	if errSk != nil {
 		return "", "", errSk
 	}
-	m.Sk += seg
-	return m.Pk, m.Sk, nil
+	m.SortKey += seg
+	return m.PartitionKey, m.SortKey, nil
 }
 
 func (m *DiLink[T0, T1]) ExtractE1Keys() (string, string, error) {
-	if m.Pk == "" || m.Sk == "" {
+	if m.PartitionKey == "" || m.SortKey == "" {
 		_, _, err := m.GenerateDiLinkKeys()
 		if err != nil {
 			return "", "", err
@@ -55,8 +55,8 @@ func (m *DiLink[T0, T1]) ExtractE1Keys() (string, string, error) {
 	if m.E1pk != "" && m.E1sk != "" {
 		return m.E1pk, m.E1sk, nil
 	}
-	pk1 := extractKeys(entity1pk, m.Pk)
-	sk1 := extractKeys(entity1sk, m.Sk)
+	pk1 := extractKeys(entity1pk, m.PartitionKey)
+	sk1 := extractKeys(entity1sk, m.SortKey)
 	return pk1, sk1, nil
 }
 
@@ -70,9 +70,9 @@ func (m *DiLink[T0, T1]) Keys(gsi int) (string, string, error) {
 
 	switch gsi {
 	case 0: // Primary keys
-		return m.Pk, m.Sk, nil
+		return m.PartitionKey, m.SortKey, nil
 	case 1: // GSI 1
-		return m.Pk1, m.Sk1, nil
+		return *m.Pk1, *m.Sk1, nil
 	default:
 		// Handle other GSIs or return an error
 		return "", "", ErrInvalidGSI{GSI: gsi}

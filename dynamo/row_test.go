@@ -49,8 +49,8 @@ func TestRow(t *testing.T) {
 						// by default, a guid was generated and set to the pk during the Put call
 						// this is the default behavior, but you can override it if you satisfy
 						// the Keyable interface, which we'll get to later.
-						timeCapsuleGUID = tc.Pk
-						t.Log("GUID written:", tc.Pk)
+						timeCapsuleGUID = tc.PartitionKey
+						t.Log("GUID written:", tc.PartitionKey)
 						assert.Equal(t, true, tc.WasPutSuccessful())
 						assert.Equal(t, float64(2), *tc.PutItemOutput.ConsumedCapacity.CapacityUnits)
 					})
@@ -60,12 +60,12 @@ func TestRow(t *testing.T) {
 						tc := &TimeCapsule{}
 						// by default, the only field you need to assign is the Pk field to the object's guid
 						// after this get and delete call we'll go over how to override this behavior
-						tc.Pk = timeCapsuleGUID
+						tc.PartitionKey = timeCapsuleGUID
 						loaded, err := tc.Get(ctx, tc) // ಠ_ಠ  it is what it is, not my favorite either
 						if err != nil {
 							t.Error(err)
 						}
-						t.Log("GUID written:", tc.Pk)
+						t.Log("GUID written:", tc.PartitionKey)
 						assert.Equal(t, true, loaded)
 						assert.Equal(t, true, tc.WasGetSuccessful())
 						assert.Equal(t, "testName", tc.Name)
@@ -73,7 +73,7 @@ func TestRow(t *testing.T) {
 					})
 					t.Run("Delete", func(t *testing.T) {
 						tc := &TimeCapsule{}
-						tc.Pk = timeCapsuleGUID
+						tc.PartitionKey = timeCapsuleGUID
 						err := tc.Delete(ctx, tc)
 						// ಠ_ಠ
 						// weird, but its pretty cool that you already implemented basic CRUD methods
@@ -81,7 +81,7 @@ func TestRow(t *testing.T) {
 						if err != nil {
 							t.Error(err)
 						}
-						t.Log("GUID written:", tc.Pk)
+						t.Log("GUID written:", tc.PartitionKey)
 						assert.Equal(t, float64(2), *tc.DeleteItemOutput.ConsumedCapacity.CapacityUnits)
 					})
 				})
@@ -102,8 +102,8 @@ func TestRow(t *testing.T) {
 						assert.Equal(t, "testLocation", pk)
 						assert.Equal(t, "testName", sk)
 						t.Run("We must also confirm that the Keyable implementation sets the pk and sk values on the object", func(t *testing.T) {
-							assert.Equal(t, "testLocation", ktc.Pk)
-							assert.Equal(t, "testName", ktc.Sk)
+							assert.Equal(t, "testLocation", ktc.PartitionKey)
+							assert.Equal(t, "testName", ktc.SortKey)
 						})
 					})
 				})
@@ -210,14 +210,14 @@ func TestRow(t *testing.T) {
 			tc := &TimeCapsule{
 				Name: "testName",
 			}
-			tc.Pk = testGUID
+			tc.PartitionKey = testGUID
 			tc.SetTTL(expectedTTL)
 			err := tc.Put(ctx, tc)
 			if err != nil {
 				t.Error(err)
 			}
 			loadTc := &TimeCapsule{}
-			loadTc.Pk = testGUID
+			loadTc.PartitionKey = testGUID
 			_, err = loadTc.Get(ctx, loadTc)
 			if err != nil {
 				t.Error(err)
@@ -240,13 +240,13 @@ func TestRow(t *testing.T) {
 			tc := &TimeCapsule{
 				Name: "testName",
 			}
-			tc.Pk = testGUID
+			tc.PartitionKey = testGUID
 			err := tc.Put(ctx, tc)
 			if err != nil {
 				t.Error(err)
 			}
 			loadTc := &TimeCapsule{}
-			loadTc.Pk = testGUID
+			loadTc.PartitionKey = testGUID
 			_, err = loadTc.Get(ctx, loadTc)
 			if err != nil {
 				t.Error(err)
@@ -280,8 +280,8 @@ func TestRow(t *testing.T) {
 				testSk := "testSk"
 				t.Run("it will return the value of Pk and Sk if they are already set", func(t *testing.T) {
 					tc := &TimeCapsule{}
-					tc.Pk = testPk
-					tc.Sk = testSk
+					tc.PartitionKey = testPk
+					tc.SortKey = testSk
 					pk, sk, err := tc.Keys(0)
 					if err != nil {
 						t.Error(err)
@@ -299,12 +299,12 @@ func TestRow(t *testing.T) {
 				})
 				t.Run("it will return the Pk if set, and return a static 'row' value for the Sk when unset", func(t *testing.T) {
 					tc := &TimeCapsule{}
-					tc.Pk = testPk
+					tc.PartitionKey = testPk
 					_, sk, err := tc.Keys(0)
 					if err != nil {
 						t.Error(err)
 					}
-					assert.Equal(t, testPk, tc.Pk)
+					assert.Equal(t, testPk, tc.PartitionKey)
 					assert.Equal(t, "row", sk)
 				})
 				t.Run("it will generate a static 'row' value for the Sk when unset", func(t *testing.T) {

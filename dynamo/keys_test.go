@@ -47,8 +47,8 @@ func TestGenerateLinkKeys(t *testing.T) {
 		testType.Entity0 = &a
 		testType.Entity1 = &b
 		testType.GenerateDiLinkKeys()
-		assert.Equal(t, "/e0Type(typeA)/e0pk(partionKeyA)/e1Type(typeB)/e1pk(partionKeyB)", testType.Pk)
-		assert.Equal(t, "/e0sk(sortKeyA)/e1sk(sortKeyB)", testType.Sk)
+		assert.Equal(t, "/e0Type(typeA)/e0pk(partionKeyA)/e1Type(typeB)/e1pk(partionKeyB)", testType.PartitionKey)
+		assert.Equal(t, "/e0sk(sortKeyA)/e1sk(sortKeyB)", testType.SortKey)
 	})
 	t.Run("Extract Entity0 Pk and Sk", func(t *testing.T) {
 		a := a{}

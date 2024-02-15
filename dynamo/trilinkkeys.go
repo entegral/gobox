@@ -14,7 +14,7 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 		return "", "", err
 	}
 
-	linkedE2Pk, err := addKeySegment(rowType, m.Entity2.Type())
+	linkedE2PartitionKey, err := addKeySegment(rowType, m.Entity2.Type())
 	if err != nil {
 		return "", "", err
 	}
@@ -22,31 +22,31 @@ func (m *TriLink[T0, T1, T2]) GenerateTriLinkCompositeKey() (string, string, err
 	if err != nil {
 		return "", "", err
 	}
-	linkedE2Pk += seg
+	linkedE2PartitionKey += seg
 
-	m.E2pk = linkedE2Pk
+	m.E2pk = linkedE2PartitionKey
 	m.E2sk = e2sk
 
 	seg, err = addKeySegment(entity2Type, m.Entity2.Type())
 	if err != nil {
 		return "", "", err
 	}
-	m.Pk += seg
+	m.PartitionKey += seg
 	seg, err = addKeySegment(entity2pk, e2pk)
 	if err != nil {
 		return "", "", err
 	}
-	m.Pk += seg
+	m.PartitionKey += seg
 	seg, err = addKeySegment(entity2sk, e2sk)
 	if err != nil {
 		return "", "", err
 	}
-	m.Sk += seg
-	return m.Pk, m.Sk, nil
+	m.SortKey += seg
+	return m.PartitionKey, m.SortKey, nil
 }
 
 func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string, error) {
-	if m.Pk == "" || m.Sk == "" {
+	if m.PartitionKey == "" || m.SortKey == "" {
 		_, _, err := m.GenerateTriLinkCompositeKey()
 		if err != nil {
 			return "", "", err
@@ -55,8 +55,8 @@ func (m *TriLink[T0, T1, T2]) ExtractE2Keys() (string, string, error) {
 	if m.E2pk != "" && m.E2sk != "" {
 		return m.E2pk, m.E2sk, nil
 	}
-	pk2 := extractKeys(entity2pk, m.Pk)
-	sk2 := extractKeys(entity2sk, m.Sk)
+	pk2 := extractKeys(entity2pk, m.PartitionKey)
+	sk2 := extractKeys(entity2sk, m.SortKey)
 
 	return pk2, sk2, nil
 }
@@ -71,9 +71,9 @@ func (m *TriLink[T0, T1, T2]) Keys(gsi int) (string, string, error) {
 
 	switch gsi {
 	case 0: // Primary keys
-		return m.Pk, m.Sk, nil
+		return m.PartitionKey, m.SortKey, nil
 	case 1: // GSI 1
-		return m.Pk1, m.Sk1, nil
+		return *m.Pk1, *m.Sk1, nil
 	default:
 		// Handle other GSIs or return an error
 		return "", "", ErrInvalidGSI{GSI: gsi}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/dgryski/trifles/uuid"
+	"github.com/entegral/gobox/keys"
 )
 
 func (r *Row) SetTTL(t time.Time) *UnixTime {
@@ -79,21 +80,8 @@ func (t *UnixTime) UpdateTTL(newTime time.Time) {
 // by itself, but rather to be embedded into other types. After embedding,
 // you should implement the TableName and Keys methods on the parent type.
 type Row struct {
-	// Type string `dynamodbav:"type,omitempty" json:"type,omitempty"`
-	Pk  string `dynamodbav:"pk,omitempty" json:"pk,omitempty"`
-	Sk  string `dynamodbav:"sk,omitempty" json:"sk,omitempty"`
-	Pk1 string `dynamodbav:"pk1,omitempty" json:"pk1,omitempty"`
-	Sk1 string `dynamodbav:"sk1,omitempty" json:"sk1,omitempty"`
-	Pk2 string `dynamodbav:"pk2,omitempty" json:"pk2,omitempty"`
-	Sk2 string `dynamodbav:"sk2,omitempty" json:"sk2,omitempty"`
-	Pk3 string `dynamodbav:"pk3,omitempty" json:"pk3,omitempty"`
-	Sk3 string `dynamodbav:"sk3,omitempty" json:"sk3,omitempty"`
-	Pk4 string `dynamodbav:"pk4,omitempty" json:"pk4,omitempty"`
-	Sk4 string `dynamodbav:"sk4,omitempty" json:"sk4,omitempty"`
-	Pk5 string `dynamodbav:"pk5,omitempty" json:"pk5,omitempty"`
-	Sk5 string `dynamodbav:"sk5,omitempty" json:"sk5,omitempty"`
-	Pk6 string `dynamodbav:"pk6,omitempty" json:"pk6,omitempty"`
-	Sk6 string `dynamodbav:"sk6,omitempty" json:"sk6,omitempty"`
+	keys.PrimaryKey
+	keys.GSI
 
 	// TTL is the UTC time that this record will expire.
 	TTL *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
@@ -114,15 +102,15 @@ func (r *Row) Type() string {
 }
 
 func (r *Row) Keys(gsi int) (string, string, error) {
-	if r.Pk != "" && r.Sk != "" {
-		return r.Pk, r.Sk, nil
+	if r.PartitionKey != "" && r.SortKey != "" {
+		return r.PartitionKey, r.SortKey, nil
 	}
-	if r.Pk != "" && r.Sk == "" {
-		return r.Pk, "row", nil
+	if r.PartitionKey != "" && r.SortKey == "" {
+		return r.PartitionKey, "row", nil
 	}
-	r.Pk = uuid.UUIDv4()
-	r.Sk = "row"
-	return r.Pk, r.Sk, nil
+	r.PartitionKey = uuid.UUIDv4()
+	r.SortKey = "row"
+	return r.PartitionKey, r.SortKey, nil
 }
 
 func (r *Row) MaxShard() int {
