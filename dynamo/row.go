@@ -87,8 +87,6 @@ type Row struct {
 	// TTL is the UTC time that this record will expire.
 	TTL *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
 
-	// PkShard is a field that is used
-	PkShard string `dynamodbav:"pkshard,omitempty" json:"pkshard,omitempty"`
 	// Type is the type of the row.
 	UnmarshalledType string `dynamodbav:"type" json:"type,omitempty"`
 	DBManager        `dynamodbav:"-" json:"-"`
