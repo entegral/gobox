@@ -10,11 +10,6 @@ import (
 	"github.com/entegral/gobox/keys"
 )
 
-func (r *Row) SetTTL(t time.Time) *UnixTime {
-	r.TTL = &UnixTime{t}
-	return r.TTL
-}
-
 // UnixTime represents a Unix timestamp in seconds.
 type UnixTime struct {
 	time.Time
@@ -83,9 +78,6 @@ type Row struct {
 	keys.Key
 	keys.GSI
 	Shard
-
-	// TTL is the UTC time that this record will expire.
-	TTL *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
 
 	// Type is the type of the row.
 	UnmarshalledType string `dynamodbav:"type" json:"type,omitempty"`
