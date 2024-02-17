@@ -20,8 +20,8 @@ func NewMemcacheCache(client *memcache.Client) *MemcacheCache {
 	}
 }
 
-func (m *MemcacheCache) Get(key string) (interface{}, error) {
-	value, _ := m.Cache.Get(key)
+func (m *MemcacheCache) CheckCache(key string) (interface{}, error) {
+	value, _ := m.Cache.CheckCache(key)
 	if value != nil {
 		return value, nil
 	}
@@ -32,12 +32,12 @@ func (m *MemcacheCache) Get(key string) (interface{}, error) {
 	}
 
 	value = string(item.Value)
-	m.Cache.Set(key, value)
+	m.Cache.SetCache(key, value)
 	return value, nil
 }
 
 func (m *MemcacheCache) Set(key string, value interface{}) error {
-	m.Cache.Set(key, value)
+	m.Cache.SetCache(key, value)
 	item := &memcache.Item{
 		Key:        key,
 		Value:      []byte(value.(string)),
@@ -47,6 +47,6 @@ func (m *MemcacheCache) Set(key string, value interface{}) error {
 }
 
 func (m *MemcacheCache) Delete(key string) error {
-	m.Cache.Delete(key)
+	m.Cache.DeleteCache(key)
 	return m.client.Delete(key)
 }

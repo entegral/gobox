@@ -9,32 +9,32 @@ import (
 	"github.com/entegral/gobox/types"
 )
 
-type RowGen[T types.Linkable] struct {
+type LinkableRow[T types.Linkable] struct {
 	Object T
 	row    Row
 }
 
-func (r RowGen[T]) Type() string {
+func (r LinkableRow[T]) Type() string {
 	return r.Object.Type()
 }
 
-func (r RowGen[T]) TableName(ctx context.Context) string {
+func (r LinkableRow[T]) TableName(ctx context.Context) string {
 	return r.Object.TableName(ctx)
 }
 
-func (r RowGen[T]) Keys(gsi int) (string, string, error) {
+func (r LinkableRow[T]) Keys(gsi int) (string, string, error) {
 	return r.Object.Keys(gsi)
 }
 
-func (r RowGen[T]) MaxShard() int {
+func (r LinkableRow[T]) MaxShard() int {
 	return r.Object.MaxShard()
 }
 
-func NewRow[T types.Linkable](object T) *RowGen[T] {
-	return &RowGen[T]{Object: object}
+func NewLinkableRow[T types.Linkable](object T) *LinkableRow[T] {
+	return &LinkableRow[T]{Object: object}
 }
 
-func (r RowGen[T]) Put(ctx context.Context) (oldItem T, err error) {
+func (r LinkableRow[T]) Put(ctx context.Context) (oldItem T, err error) {
 	err = r.row.Put(ctx, r.Object)
 	if err != nil {
 		return oldItem, err
@@ -43,11 +43,11 @@ func (r RowGen[T]) Put(ctx context.Context) (oldItem T, err error) {
 	return oldItem, err
 }
 
-func (r RowGen[T]) Get(ctx context.Context) (bool, error) {
+func (r LinkableRow[T]) Get(ctx context.Context) (bool, error) {
 	return r.row.Get(ctx, r.Object)
 }
 
-func (r RowGen[T]) Delete(ctx context.Context) (oldItem T, err error) {
+func (r LinkableRow[T]) Delete(ctx context.Context) (oldItem T, err error) {
 	err = r.row.Delete(ctx, r.Object)
 	if err != nil {
 		return oldItem, err
@@ -56,27 +56,27 @@ func (r RowGen[T]) Delete(ctx context.Context) (oldItem T, err error) {
 	return oldItem, err
 }
 
-func (r RowGen[T]) WasPutSuccessful() bool {
+func (r LinkableRow[T]) WasPutSuccessful() bool {
 	return r.row.WasPutSuccessful()
 }
 
-func (r RowGen[T]) WasGetSuccessful() bool {
+func (r LinkableRow[T]) WasGetSuccessful() bool {
 	return r.row.WasGetSuccessful()
 }
 
-func (r RowGen[T]) OldPutValues() map[string]awstypes.AttributeValue {
+func (r LinkableRow[T]) OldPutValues() map[string]awstypes.AttributeValue {
 	return r.row.OldPutValues()
 }
 
-func (r RowGen[T]) OldDeleteValues() map[string]awstypes.AttributeValue {
+func (r LinkableRow[T]) OldDeleteValues() map[string]awstypes.AttributeValue {
 	return r.row.OldDeleteValues()
 }
 
-func (r RowGen[T]) LoadFromMessage(ctx context.Context, message sqstypes.Message) (bool, error) {
+func (r LinkableRow[T]) LoadFromMessage(ctx context.Context, message sqstypes.Message) (bool, error) {
 	return r.row.LoadFromMessage(ctx, message, r.Object)
 }
 
-func (r *RowGen[T]) WithTableName(tableName string) *RowGen[T] {
+func (r *LinkableRow[T]) WithTableName(tableName string) *LinkableRow[T] {
 	r.row.SetTableName(tableName)
 	return r
 }

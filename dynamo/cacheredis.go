@@ -23,8 +23,8 @@ func NewRedisCache(client *redis.Client, ctx context.Context) CacheInterface {
 	}
 }
 
-func (r *RedisCache) Get(key string) (interface{}, error) {
-	value, _ := r.Cache.Get(key)
+func (r *RedisCache) GetCheckCache(key string) (interface{}, error) {
+	value, _ := r.Cache.CheckCache(key)
 	if value != nil {
 		return value, nil
 	}
@@ -34,16 +34,16 @@ func (r *RedisCache) Get(key string) (interface{}, error) {
 		return nil, err
 	}
 
-	r.Cache.Set(key, value)
+	r.Cache.SetCache(key, value)
 	return value, nil
 }
 
 func (r *RedisCache) Set(key string, value interface{}) error {
-	r.Cache.Set(key, value)
+	r.Cache.SetCache(key, value)
 	return r.client.Set(r.ctx, key, value, r.defaultTTL).Err()
 }
 
 func (r *RedisCache) Delete(key string) error {
-	r.Cache.Delete(key)
+	r.Cache.DeleteCache(key)
 	return r.client.Del(r.ctx, key).Err()
 }

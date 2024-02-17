@@ -8,9 +8,9 @@ import (
 type CacheInterface interface {
 	SetTTL(time.Time) *UnixTime
 	GetTTL() *UnixTime
-	Get(key string) (interface{}, error)
-	Set(key string, value interface{}) error
-	Delete(key string) error
+	CheckCache(key string) (interface{}, error)
+	SetCache(key string, value interface{}) error
+	DeleteCache(key string) error
 }
 
 type Cache struct {
@@ -35,17 +35,17 @@ func (c *Cache) GetTTL() *UnixTime {
 	return c.TTL
 }
 
-func (c *Cache) Get(key string) (interface{}, error) {
+func (c *Cache) CheckCache(key string) (interface{}, error) {
 	value, _ := c.mem.Load(key)
 	return value, nil
 }
 
-func (c *Cache) Set(key string, value interface{}) error {
+func (c *Cache) SetCache(key string, value interface{}) error {
 	c.mem.Store(key, value)
 	return nil
 }
 
-func (c *Cache) Delete(key string) error {
+func (c *Cache) DeleteCache(key string) error {
 	c.mem.Delete(key)
 	return nil
 }

@@ -54,44 +54,44 @@ var unloadedUser = UserNoEmbed{
 	Email: "test@example.com",
 }
 
-func TestNewRow(t *testing.T) {
+func TestNewLinkableRow(t *testing.T) {
 	ctx := context.Background()
 	t.Run("simple put and get test", func(t *testing.T) {
-		rowGen := NewRow(&test1)
+		rowGen := NewLinkableRow(&test1)
 		if rowGen.Type() != "UserNoEmbed" {
-			t.Errorf("NewRow().object.Type() = %v, want %v", rowGen.Type(), "UserNoEmbed")
+			t.Errorf("NewLinkableRow().object.Type() = %v, want %v", rowGen.Type(), "UserNoEmbed")
 		}
 		_, err := rowGen.Put(ctx)
 		if err != nil {
-			t.Errorf("NewRow().Put() = %v, want %v", err, nil)
+			t.Errorf("NewLinkableRow().Put() = %v, want %v", err, nil)
 		}
 		start := unloadedUser
-		getRow := NewRow(&start)
+		getRow := NewLinkableRow(&start)
 		loaded, err := getRow.Get(ctx)
 		if err != nil {
-			t.Errorf("NewRow().Get() = %v, want %v", err, nil)
+			t.Errorf("NewLinkableRow().Get() = %v, want %v", err, nil)
 		}
 		if !loaded {
-			t.Errorf("NewRow().Get() = %v, want %v", loaded, true)
+			t.Errorf("NewLinkableRow().Get() = %v, want %v", loaded, true)
 		}
 		assert.Equal(t, getRow.Object.Age, 30)
 	})
 	t.Run("test overwrites and delete", func(t *testing.T) {
 		t.Run("test overwrites", func(t *testing.T) {
-			rowGen := NewRow(&test2)
+			rowGen := NewLinkableRow(&test2)
 			oldItem, err := rowGen.Put(ctx)
 			if err != nil {
-				t.Errorf("NewRow().Put() = %v, want %v", err, nil)
+				t.Errorf("NewLinkableRow().Put() = %v, want %v", err, nil)
 			}
 			assert.Equal(t, oldItem.Age, 30)
 			assert.Equal(t, oldItem.Name, "Test User")
 		})
 		t.Run("test delete", func(t *testing.T) {
 			start := unloadedUser
-			rowGen := NewRow(&start)
+			rowGen := NewLinkableRow(&start)
 			oldItem, err := rowGen.Delete(ctx)
 			if err != nil {
-				t.Errorf("NewRow().Delete() = %v, want %v", err, nil)
+				t.Errorf("NewLinkableRow().Delete() = %v, want %v", err, nil)
 			}
 			assert.Equal(t, oldItem.Age, 31)
 			assert.Equal(t, oldItem.Name, "New Test User")
@@ -99,7 +99,7 @@ func TestNewRow(t *testing.T) {
 	})
 
 	t.Run("test WithTable", func(t *testing.T) {
-		rowGen := NewRow(&test1)
+		rowGen := NewLinkableRow(&test1)
 		defer rowGen.Delete(ctx)
 		old, err := rowGen.WithTableName("test").Put(ctx)
 		assert.Error(t, err)
