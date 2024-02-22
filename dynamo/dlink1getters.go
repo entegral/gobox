@@ -79,7 +79,7 @@ func (m *DiLink[T0, T1]) LoadEntity1(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	if out.Item == nil {
-		return false, &ErrEntityNotFound[T1]{Entity: m.Entity1}
+		return false, nil
 	}
 	if err := validateDynamoRowType[T1](out.Item, m.Entity1); err != nil {
 		return false, err
