@@ -57,7 +57,7 @@ func (m *MonoLink[T0]) LoadEntity0(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	if out.Item == nil {
-		return false, &ErrEntityNotFound[T0]{Entity: m.Entity0}
+		return false, nil
 	}
 	if err := validateDynamoRowType[T0](out.Item, m.Entity0); err != nil {
 		return false, err
