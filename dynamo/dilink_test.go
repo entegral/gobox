@@ -50,6 +50,7 @@ func TestDiLink(t *testing.T) {
 	// ensure we start with an empty slate
 	pinkSlip := &PinkSlip{
 		DiLink: *NewDiLink(preClearedUser, preClearedCar),
+		VIN:    "123",
 	}
 	err = pinkSlip.Delete(ctx, pinkSlip)
 	if err != nil {
@@ -58,15 +59,18 @@ func TestDiLink(t *testing.T) {
 
 	// generate some minimal entities for testing
 	// these only have the minimum required fields to generate the composite keys
+	const minimalEmail = "Minimal" + email
 	minimalUser := &User{
-		Email: email,
+		Email: minimalEmail,
 		Name:  name,
 		Age:   age,
 	}
+	const minimalCarmake = "Minimal" + carmake
 	minimalCar := &Car{
-		Make:  carmake,
-		Model: model,
-		Year:  year,
+		Make:    minimalCarmake,
+		Model:   model,
+		Year:    year,
+		Details: &carDetails,
 	}
 
 	// create a second car for testing
@@ -121,6 +125,7 @@ func TestDiLink(t *testing.T) {
 				})
 				t.Run("should return true when the record is in dynamo", func(t *testing.T) {
 					// finally create the pink slip
+					pinkSlip.VIN = "234"
 					err = pinkSlip.Put(ctx, pinkSlip)
 					if err != nil {
 						t.Error(err)
@@ -134,8 +139,13 @@ func TestDiLink(t *testing.T) {
 		t.Run("Load Entities of Link", func(t *testing.T) {
 			pinkSlip := &PinkSlip{
 				DiLink: *NewDiLink(minimalUser, minimalCar),
+				VIN:    "345",
 			}
 			err := minimalUser.Put(ctx, minimalUser)
+			if err != nil {
+				t.Error(err)
+			}
+			err = minimalCar.Put(ctx, minimalCar)
 			if err != nil {
 				t.Error(err)
 			}
@@ -144,7 +154,7 @@ func TestDiLink(t *testing.T) {
 				loaded, err := pinkSlip.LoadEntity0(ctx)
 				assert.Equal(t, nil, err)
 				assert.Equal(t, true, loaded)
-				assert.Equal(t, email, pinkSlip.Entity0.Email)
+				assert.Equal(t, minimalEmail, pinkSlip.Entity0.Email)
 				assert.Equal(t, name, pinkSlip.Entity0.Name)
 				assert.Equal(t, age, pinkSlip.Entity0.Age)
 			})
@@ -158,7 +168,7 @@ func TestDiLink(t *testing.T) {
 				loaded, err := pinkSlip.LoadEntity1(ctx)
 				assert.Equal(t, nil, err)
 				assert.Equal(t, true, loaded)
-				assert.Equal(t, carmake, pinkSlip.Entity1.Make)
+				assert.Equal(t, minimalCarmake, pinkSlip.Entity1.Make)
 				assert.Equal(t, model, pinkSlip.Entity1.Model)
 				assert.Equal(t, year, pinkSlip.Entity1.Year)
 				assert.Equal(t, carDetails, *pinkSlip.Entity1.Details)
@@ -167,15 +177,16 @@ func TestDiLink(t *testing.T) {
 				// reset the pink slip
 				pinkSlip = &PinkSlip{
 					DiLink: *NewDiLink(minimalUser, minimalCar),
+					VIN:    "456",
 				}
 				userLoaded, carLoaded, err := pinkSlip.LoadEntities(ctx)
 				assert.Equal(t, nil, err)
 				assert.Equal(t, true, userLoaded)
 				assert.Equal(t, true, carLoaded)
-				assert.Equal(t, email, pinkSlip.Entity0.Email)
+				assert.Equal(t, minimalEmail, pinkSlip.Entity0.Email)
 				assert.Equal(t, name, pinkSlip.Entity0.Name)
 				assert.Equal(t, age, pinkSlip.Entity0.Age)
-				assert.Equal(t, carmake, pinkSlip.Entity1.Make)
+				assert.Equal(t, minimalCarmake, pinkSlip.Entity1.Make)
 				assert.Equal(t, model, pinkSlip.Entity1.Model)
 				assert.Equal(t, year, pinkSlip.Entity1.Year)
 				assert.Equal(t, carDetails, *pinkSlip.Entity1.Details)
@@ -186,6 +197,20 @@ func TestDiLink(t *testing.T) {
 				// start with a fresh pink slip
 				pinkSlip := &PinkSlip{
 					DiLink: *NewDiLink(minimalUser, minimalCar),
+					VIN:    "567",
+				}
+				err := pinkSlip.Put(ctx, pinkSlip)
+				if err != nil {
+					t.Error(err)
+				}
+				// ensure the user and car are in dynamo
+				err = minimalUser.Put(ctx, minimalUser)
+				if err != nil {
+					t.Error(err)
+				}
+				err = minimalCar.Put(ctx, minimalCar)
+				if err != nil {
+					t.Error(err)
 				}
 				t.Run("Should return an array of cars when pink slips do exist", func(t *testing.T) {
 					// now the pink slip has been created locally with only enough info to generate the composite keys
@@ -219,6 +244,9 @@ func TestDiLink(t *testing.T) {
 			})
 			t.Run("FindEntity1s", func(t *testing.T) {
 				t.Run("Should return an empty array when no pink slips exist", func(t *testing.T) {
+					// first ensure the car is there
+					minimalCar.Delete(ctx, minimalCar)
+					car2.Delete(ctx, car2)
 					// we should get a similar result here as we did above
 					// now we should get an empty array
 					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
@@ -229,6 +257,7 @@ func TestDiLink(t *testing.T) {
 				})
 				t.Run("Should return an array of a single car when a single pink slip exists", func(t *testing.T) {
 					// should get a list of cars back after saving the pink slip again
+					pinkSlip.VIN = "678"
 					err := pinkSlip.Put(ctx, pinkSlip)
 					if err != nil {
 						t.Error(err)
@@ -256,6 +285,7 @@ func TestDiLink(t *testing.T) {
 					// and now we need to create a second pink slip with the same user but the second car
 					pinkSlip2 := &PinkSlip{
 						DiLink: *NewDiLink(preClearedUser, car2),
+						VIN:    "789",
 					}
 					// save ittttt
 					err = pinkSlip2.Put(ctx, pinkSlip2)

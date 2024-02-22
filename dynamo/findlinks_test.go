@@ -40,6 +40,7 @@ func TestFindLinkRowsByEntityGSI(t *testing.T) {
 	// create link
 	pinkSlip := &PinkSlip{
 		DiLink: *NewDiLink(user, car),
+		VIN:    "123456",
 	}
 	err = pinkSlip.Put(ctx, pinkSlip)
 	assert.NoError(t, err)
