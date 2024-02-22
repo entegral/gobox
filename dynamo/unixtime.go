@@ -13,8 +13,8 @@ type UnixTime struct {
 	time.Time
 }
 
-// MarshalDynamoDBAttributeValue implements the dynamodbattribute.Marshaler interface.
-func (t UnixTime) MarshalDynamoDBAttributeValue() (types.AttributeValue, error) {
+// MarshalAttribute implements the attributevalue.Marshaler interface.
+func (t UnixTime) MarshalAttribute() (types.AttributeValue, error) {
 	if t.Time.IsZero() {
 		return nil, nil
 	}
@@ -23,8 +23,8 @@ func (t UnixTime) MarshalDynamoDBAttributeValue() (types.AttributeValue, error) 
 	}, nil
 }
 
-// UnmarshalDynamoDBAttributeValue implements the dynamodbattribute.Unmarshaler interface.
-func (t *UnixTime) UnmarshalDynamoDBAttributeValue(av types.AttributeValue) error {
+// UnmarshalAttribute implements the attributevalue.Unmarshaler interface.
+func (t *UnixTime) UnmarshalAttribute(av types.AttributeValue) error {
 	if v, ok := av.(*types.AttributeValueMemberN); ok {
 		unixTime, err := strconv.ParseInt(v.Value, 10, 64)
 		if err != nil {

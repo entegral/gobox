@@ -13,7 +13,7 @@ func (link *MonoLink[T0]) CheckLink(ctx context.Context, linkWrapper types.Linka
 	*link = *NewMonoLink(entity0)
 	loaded, err := checkMonoLink[T0](ctx, link)
 	if loaded {
-		err := attributevalue.UnmarshalMap(link.RowData, linkWrapper)
+		err := attributevalue.UnmarshalMap(link.GetItemOutput.Item, linkWrapper)
 		return loaded, err
 	}
 	return false, err

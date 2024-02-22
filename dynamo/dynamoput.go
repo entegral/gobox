@@ -44,6 +44,9 @@ func (d *DBManager) putItemPrependTypeWithClient(ctx context.Context, client *cl
 			Value: getTypeShardKey(row.Type(), row.MaxShard()),
 		}
 	}
+	if !d.GetDynamoTTL().IsZero() {
+		av["ttl"] = &awstypes.AttributeValueMemberN{Value: fmt.Sprintf("%d", d.GetDynamoTTL().Unix())}
+	}
 	tn := d.TableName(ctx)
 	return putItemWithClient(ctx, client, tn, av)
 }

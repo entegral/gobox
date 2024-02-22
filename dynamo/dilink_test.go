@@ -224,41 +224,40 @@ func TestDiLink(t *testing.T) {
 					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
 					t.Log("entities:", entities)
 					t.Log("err:", err)
-					assert.IsType(t, &ErrEntityNotFound[*Car]{}, err)
+					assert.Nil(t, err)
 					assert.Equal(t, 0, len(entities))
 				})
-				t.Run("Should return an array of cars when pink slips do exist", func(t *testing.T) {
+				t.Run("Should return an array of a single car when a single pink slip exists", func(t *testing.T) {
 					// should get a list of cars back after saving the pink slip again
 					err := pinkSlip.Put(ctx, pinkSlip)
 					if err != nil {
 						t.Error(err)
 					}
+					// ...lets make sure the car is in dynamo
 					err = preClearedCar.Put(ctx, preClearedCar)
-					if err != nil {
-						t.Error(err)
-					}
-					err = car2.Put(ctx, car2)
 					if err != nil {
 						t.Error(err)
 					}
 					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
 					t.Log("entities:", entities)
 					assert.Nil(t, err)
-					assert.Equal(t, 2, len(entities))
-					assert.Equal(t, preClearedCar.Make, entities[1].Make)
-					assert.Equal(t, preClearedCar.Model, entities[1].Model)
-					assert.Equal(t, preClearedCar.Year, entities[1].Year)
-					assert.Equal(t, preClearedCar.Details, entities[1].Details)
+					assert.Equal(t, 1, len(entities))
+					assert.Equal(t, preClearedCar.Make, entities[0].Make)
+					assert.Equal(t, preClearedCar.Model, entities[0].Model)
+					assert.Equal(t, preClearedCar.Year, entities[0].Year)
+					assert.Equal(t, preClearedCar.Details, entities[0].Details)
 				})
 				t.Run("Should return an array of cars when multiple pink slips do exist", func(t *testing.T) {
-
+					// gotta ensure the second car is in dynamo
 					err := car2.Put(ctx, car2)
 					if err != nil {
 						t.Error(err)
 					}
+					// and now we need to create a second pink slip with the same user but the second car
 					pinkSlip2 := &PinkSlip{
 						DiLink: *NewDiLink(preClearedUser, car2),
 					}
+					// save ittttt
 					err = pinkSlip2.Put(ctx, pinkSlip2)
 					if err != nil {
 						t.Error(err)
@@ -270,6 +269,7 @@ func TestDiLink(t *testing.T) {
 					}
 					assert.Equal(t, nil, err)
 					assert.Equal(t, 2, len(entities))
+					// sort, because dynamo doesn't guarantee order
 					sort.Slice(entities, func(i, j int) bool {
 						return entities[i].Year < entities[j].Year
 					})

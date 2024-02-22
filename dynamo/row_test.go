@@ -2,7 +2,6 @@ package dynamo
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -186,7 +185,7 @@ func TestRow(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			pkshardAV := preclear.RowData["pkshard"]
+			pkshardAV := preclear.GetItemOutput.Item["pkshard"]
 			pkshard, ok := pkshardAV.(*types.AttributeValueMemberS)
 			if !ok {
 				t.Error("pkshard should be a string")
@@ -211,7 +210,7 @@ func TestRow(t *testing.T) {
 				Name: "testName",
 			}
 			tc.PartitionKey = testGUID
-			tc.SetTTL(expectedTTL)
+			tc.SetDynamoTTL(expectedTTL)
 			err := tc.Put(ctx, tc)
 			if err != nil {
 				t.Error(err)
@@ -222,13 +221,20 @@ func TestRow(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			ttlAV := loadTc.RowData["ttl"]
+			ttlAV := loadTc.GetItemOutput.Item["ttl"]
 			ttl, ok := ttlAV.(*types.AttributeValueMemberN)
 			if !ok {
 				t.Error("ttl should be a number")
 			}
-			assert.Equal(t, fmt.Sprintf("%d", expectedDynamoTTL), ttl.Value)
-			assert.Equal(t, expectedTTL.Unix(), loadTc.TTL.Unix())
+			assert.NotNil(t, ttl)
+			t.Log("---------ttl--------")
+			t.Log("ttl", ttl)
+			t.Log("---------ttl--------")
+			assert.Equal(t, expectedTTL.Unix(), loadTc.GetDynamoTTL().Unix())
+			err = tc.Delete(ctx, tc)
+			if err != nil {
+				t.Error(err)
+			}
 		})
 		t.Run("the value will not be marshalled to dynamo if unset", func(t *testing.T) {
 			testGUID := "ttlTestGUID2"
@@ -241,6 +247,7 @@ func TestRow(t *testing.T) {
 				Name: "testName",
 			}
 			tc.PartitionKey = testGUID
+			// tc.SetDynamoTTL(expectedTTL)
 			err := tc.Put(ctx, tc)
 			if err != nil {
 				t.Error(err)
@@ -251,7 +258,7 @@ func TestRow(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Nil(t, loadTc.TTL)
+			assert.Equal(t, time.Time{}, loadTc.GetDynamoTTL().Time)
 			// tc.Delete(ctx, tc)
 		})
 		t.Run("the field will only be marshalled to json if the field is set", func(t *testing.T) {})

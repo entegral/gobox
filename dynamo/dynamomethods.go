@@ -3,6 +3,7 @@ package dynamo
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/entegral/gobox/types"
 
@@ -23,6 +24,10 @@ type DBManager struct {
 	PutItemOutput    *dynamodb.PutItemOutput    `dynamodbav:"-" json:"-"`
 	DeleteItemOutput *dynamodb.DeleteItemOutput `dynamodbav:"-" json:"-"`
 
+	// TTL is a UnixTime timestamp that is used to set the Time To Live
+	// (TTL) for the item in DynamoDB.
+	TTL UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
+
 	// RowData is a map of data retrieved from DynamoDB during the last
 	// GetItem operation. This is useful for comparing the old values
 	// with the new values after a PutItem operation.
@@ -41,6 +46,17 @@ type DBManagerInterface interface {
 	Delete(ctx context.Context, row types.Linkable) (err error)
 	OldDeleteValues() map[string]awstypes.AttributeValue
 	LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error)
+	SetDynamoTTL(t time.Time) *UnixTime
+	GetDynamoTTL() *UnixTime
+}
+
+func (d *DBManager) SetDynamoTTL(t time.Time) *UnixTime {
+	d.TTL = UnixTime{t}
+	return &d.TTL
+}
+
+func (d *DBManager) GetDynamoTTL() *UnixTime {
+	return &d.TTL
 }
 
 // NewDBManager creates a new instance of DBManager and returns it as a DBManagerInterface.

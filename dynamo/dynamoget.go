@@ -75,6 +75,10 @@ func (d *DBManager) getItemPrependTypeWithClient(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
+	err = d.TTL.UnmarshalAttribute(out.Item["ttl"])
+	if err != nil {
+		return nil, err
+	}
 	// if the row has a RowData field by embedding the Row struct, set it
 	rowValue := reflect.ValueOf(row).Elem()
 	if rowDataField := rowValue.FieldByName("Row"); rowDataField.IsValid() {

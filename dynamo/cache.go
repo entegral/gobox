@@ -6,15 +6,15 @@ import (
 )
 
 type CacheInterface interface {
-	SetTTL(time.Time) *UnixTime
-	GetTTL() *UnixTime
+	SetTTL(time.Duration)
+	GetTTL() time.Duration
 	CheckCache(key string) (interface{}, error)
 	SetCache(key string, value interface{}) error
 	DeleteCache(key string) error
 }
 
 type Cache struct {
-	TTL        *UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
+	TTL        time.Duration `dynamodbav:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
 	mem        sync.Map
 	defaultTTL time.Duration
 }
@@ -26,12 +26,12 @@ func NewCache(defaultTTL time.Duration) CacheInterface {
 	}
 }
 
-func (c *Cache) SetTTL(t time.Time) *UnixTime {
-	c.TTL = &UnixTime{t}
-	return c.TTL
+func (c *Cache) SetTTL(t time.Duration) {
+	c.TTL = t
+
 }
 
-func (c *Cache) GetTTL() *UnixTime {
+func (c *Cache) GetTTL() time.Duration {
 	return c.TTL
 }
 
