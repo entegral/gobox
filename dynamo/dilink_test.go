@@ -222,9 +222,9 @@ func TestDiLink(t *testing.T) {
 					assert.Equal(t, nil, err)
 					assert.Equal(t, 1, len(entities))
 					assert.NotEqual(t, nil, entities[0])
-					assert.Equal(t, preClearedUser.Email, entities[0].Email)
-					assert.Equal(t, preClearedUser.Name, entities[0].Name)
-					assert.Equal(t, preClearedUser.Age, entities[0].Age)
+					assert.Equal(t, minimalUser.Email, entities[0].Email)
+					assert.Equal(t, minimalUser.Name, entities[0].Name)
+					assert.Equal(t, minimalUser.Age, entities[0].Age)
 				})
 				t.Run("Should return an empty array when no pink slips exist", func(t *testing.T) {
 					// now we have to delete the pink slip from dynamo and re-run the test
@@ -244,10 +244,11 @@ func TestDiLink(t *testing.T) {
 			})
 			t.Run("FindEntity1s", func(t *testing.T) {
 				t.Run("Should return an empty array when no pink slips exist", func(t *testing.T) {
-					// first ensure the car is there
-					minimalCar.Delete(ctx, minimalCar)
-					car2.Delete(ctx, car2)
-					// we should get a similar result here as we did above
+					// now we have to delete the pink slip from dynamo and re-run the test
+					err := pinkSlip.Delete(ctx, pinkSlip)
+					if err != nil {
+						t.Error(err)
+					}
 					// now we should get an empty array
 					entities, err := pinkSlip.LoadEntity1s(ctx, pinkSlip)
 					t.Log("entities:", entities)
