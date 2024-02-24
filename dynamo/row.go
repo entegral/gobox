@@ -12,7 +12,6 @@ type Row struct {
 	keys.Key
 	keys.GSI
 	Shard
-	*Cache
 
 	// Type is the type of the row.
 	UnmarshalledType string `dynamodbav:"type" json:"type,omitempty"`

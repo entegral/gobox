@@ -5,8 +5,8 @@ import "fmt"
 type Key struct {
 	pkKey        string
 	skKey        string
-	PartitionKey string `json:"pk"`
-	SortKey      string `json:"sk"`
+	PartitionKey string `dynamodbav:"pk" json:"pk"`
+	SortKey      string `dynamodbav:"sk" json:"sk"`
 	IsEntity     bool   `json:"isEntity"`
 }
 
