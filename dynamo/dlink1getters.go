@@ -13,22 +13,23 @@ import (
 )
 
 func (m *DiLink[T0, T1]) LoadEntity1s(ctx context.Context, linkWrapper ttypes.Typeable) ([]T1, error) {
+	var entities []T1
 	loaded, err := m.LoadEntity0(ctx)
 	if err != nil {
-		return nil, err
+		return entities, err
 	}
 	if !loaded {
-		return nil, ErrEntityNotFound[T0]{Entity: m.Entity0}
+		return entities, ErrEntityNotFound[T0]{Entity: m.Entity0}
 	}
 	links, err := FindLinksByEntity0[T0, *DiLink[T0, T1]](ctx, m.Entity0, linkWrapper.Type())
 	if err != nil {
-		return nil, err
+		return entities, err
 	}
-	var entities []T1
 	for _, link := range links {
+		link.Entity0 = m.Entity0
 		loaded, err := link.LoadEntity1(ctx)
 		if err != nil {
-			return nil, err
+			return entities, err
 		}
 		if loaded {
 			entities = append(entities, link.Entity1)

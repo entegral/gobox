@@ -3,7 +3,7 @@ package dynamo
 import (
 	"context"
 	"encoding/json"
-	"os"
+	"time"
 
 	"github.com/entegral/gobox/types"
 
@@ -15,6 +15,7 @@ import (
 // DBManager is a struct that implements the DBManager interface.
 // It is intended to be embedded into other types to provide them with DynamoDB operations.
 type DBManager struct {
+	Table
 	// Tablename is a field you can set at runtime that will change the
 	// name of the DynamoDB table that is used for operations.
 	// It is ephemeral and will not be persisted to DynamoDB.
@@ -22,6 +23,10 @@ type DBManager struct {
 	GetItemOutput    *dynamodb.GetItemOutput    `dynamodbav:"-" json:"-"`
 	PutItemOutput    *dynamodb.PutItemOutput    `dynamodbav:"-" json:"-"`
 	DeleteItemOutput *dynamodb.DeleteItemOutput `dynamodbav:"-" json:"-"`
+
+	// TTL is a UnixTime timestamp that is used to set the Time To Live
+	// (TTL) for the item in DynamoDB.
+	TTL UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
 
 	// RowData is a map of data retrieved from DynamoDB during the last
 	// GetItem operation. This is useful for comparing the old values
@@ -41,6 +46,17 @@ type DBManagerInterface interface {
 	Delete(ctx context.Context, row types.Linkable) (err error)
 	OldDeleteValues() map[string]awstypes.AttributeValue
 	LoadFromMessage(ctx context.Context, message sqstypes.Message, row types.Linkable) (bool, error)
+	SetDynamoTTL(t time.Time) *UnixTime
+	GetDynamoTTL() *UnixTime
+}
+
+func (d *DBManager) SetDynamoTTL(t time.Time) *UnixTime {
+	d.TTL = UnixTime{t}
+	return &d.TTL
+}
+
+func (d *DBManager) GetDynamoTTL() *UnixTime {
+	return &d.TTL
 }
 
 // NewDBManager creates a new instance of DBManager and returns it as a DBManagerInterface.
@@ -50,26 +66,11 @@ func NewDBManager(tableName string) DBManagerInterface {
 	}
 }
 
-// TableName returns the name of the DynamoDB table.
-// By default, this is the value of the TABLENAME environment variable.
-// If you need to override this, implement this method on the parent type.
-func (d *DBManager) TableName(ctx context.Context) string {
-	if d.Tablename != "" {
-		return d.Tablename
-	}
-	tn := os.Getenv("TABLENAME")
-	if tn == "" {
-		panic("TABLENAME environment variable not set")
-	}
-	return tn
-}
-
 // Get gets a row from DynamoDB. The row must implement the Keyable interface.
 // The GetItemOutput response will be stored in the GetItemOutput field:
 // d.GetItemOutput
 func (d *DBManager) Get(ctx context.Context, row types.Linkable) (loaded bool, err error) {
-	tn := d.TableName(ctx)
-	d.GetItemOutput, err = GetItemWithTablename(ctx, tn, row)
+	d.GetItemOutput, err = d.GetItemWithTablename(ctx, row)
 	return d.WasGetSuccessful(), err
 }
 
@@ -82,7 +83,7 @@ func (d *DBManager) WasGetSuccessful() bool {
 // The PutItemOutput response will be stored in the PutItemOutput field:
 // d.PutItemOutput
 func (d *DBManager) Put(ctx context.Context, row types.Linkable) (err error) {
-	d.PutItemOutput, err = PutItem(ctx, row)
+	d.PutItemOutput, err = d.PutItem(ctx, row)
 	return err
 }
 
@@ -103,7 +104,7 @@ func (d *DBManager) OldPutValues() map[string]awstypes.AttributeValue {
 // The DeleteItemOutput response will be stored in the DeleteItemOutput field:
 // d.DeleteItemOutput
 func (d *DBManager) Delete(ctx context.Context, row types.Linkable) (err error) {
-	d.DeleteItemOutput, err = DeleteItem(ctx, row)
+	d.DeleteItemOutput, err = d.DeleteItem(ctx, row)
 	return err
 }
 

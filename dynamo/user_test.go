@@ -25,12 +25,12 @@ func (u *User) Keys(gsi int) (string, string, error) {
 	}
 	// For this example, assuming GUID is the partition key and Email is the sort key.
 	// Additional logic can be added to handle different GSIs if necessary.
-	u.Pk = u.Email
-	u.Sk = "info"
+	u.PartitionKey = u.Email
+	u.SortKey = "info"
 	switch gsi {
 	default:
 		// Handle other GSIs or return an error
-		return u.Pk, u.Sk, nil
+		return u.PartitionKey, u.SortKey, nil
 	}
 }
 

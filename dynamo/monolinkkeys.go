@@ -3,6 +3,7 @@ package dynamo
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"unicode"
@@ -21,11 +22,24 @@ func (g EntityGSI) String() string {
 
 // GenerateMonoLinkKeys generates the composite key for the monolink.
 func (m *MonoLink[T0]) GenerateMonoLinkKeys() (string, string, error) {
-	m.Pk = ""
-	m.Sk = ""
-	e0pk, e0sk, err := m.Entity0.Keys(0)
-	if err != nil {
-		return "", "", err
+
+	m.PartitionKey = ""
+	m.SortKey = ""
+
+	var e0pk, e0sk string
+	var err error
+
+	if reflect.ValueOf(m.Entity0).IsNil() {
+		if m.E0pk == "" && m.E0sk == "" {
+			return "", "", errors.New("Entity0 is nil and E0pk and E0sk are empty")
+		}
+		e0pk = m.E0pk
+		e0sk = m.E0sk
+	} else {
+		e0pk, e0sk, err = m.Entity0.Keys(0)
+		if err != nil {
+			return "", "", err
+		}
 	}
 
 	linkedE0Pk, err := addKeySegment(rowType, m.Entity0.Type())
@@ -46,24 +60,24 @@ func (m *MonoLink[T0]) GenerateMonoLinkKeys() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	m.Pk += seg
+	m.PartitionKey += seg
 	seg, err = addKeySegment(entity0pk, e0pk)
 	if err != nil {
 		return "", "", err
 	}
-	m.Pk += seg
+	m.PartitionKey += seg
 	seg, err = addKeySegment(entity0sk, e0sk)
 	if err != nil {
 		return "", "", err
 	}
-	m.Sk += seg
-	return m.Pk, m.Sk, nil
+	m.SortKey += seg
+	return m.PartitionKey, m.SortKey, nil
 }
 
 // ExtractE0Keys extracts the pk and sk values for the 0th entity from the
 // primary composite key.
 func (m *MonoLink[T0]) ExtractE0Keys() (string, string, error) {
-	if m.Pk == "" || m.Sk == "" {
+	if m.PartitionKey == "" || m.SortKey == "" {
 		_, _, err := m.GenerateMonoLinkKeys()
 		if err != nil {
 			return "", "", err
@@ -72,8 +86,8 @@ func (m *MonoLink[T0]) ExtractE0Keys() (string, string, error) {
 	if m.E0pk != "" && m.E0sk != "" {
 		return m.E0pk, m.E0sk, nil
 	}
-	pk := extractKeys(entity0pk, m.Pk)
-	sk := extractKeys(entity0sk, m.Sk)
+	pk := extractKeys(entity0pk, m.PartitionKey)
+	sk := extractKeys(entity0sk, m.SortKey)
 	return pk, sk, nil
 }
 
@@ -155,7 +169,7 @@ func (m *MonoLink[T0]) Keys(gsi int) (string, string, error) {
 
 	switch gsi {
 	case 0: // Primary keys
-		return m.Pk, m.Sk, nil
+		return m.PartitionKey, m.SortKey, nil
 	default:
 		// Handle other GSIs or return an error
 		return "", "", errors.New("invalid GSI")

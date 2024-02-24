@@ -9,7 +9,7 @@ type KeyableTimeCapsule struct {
 
 func (tc *KeyableTimeCapsule) Keys(gsi int) (string, string, error) {
 	// our implementation will use the Name and Location fields to generate the pk and sk
-	tc.Pk = tc.Location
-	tc.Sk = tc.Name
-	return tc.Pk, tc.Sk, nil
+	tc.PartitionKey = tc.Location
+	tc.SortKey = tc.Name
+	return tc.PartitionKey, tc.SortKey, nil
 }
