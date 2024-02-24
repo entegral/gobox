@@ -7,7 +7,6 @@ type Key struct {
 	skKey        string
 	PartitionKey string `dynamodbav:"pk" json:"pk"`
 	SortKey      string `dynamodbav:"sk" json:"sk"`
-	IsEntity     bool   `json:"isEntity"`
 }
 
 func (k *Key) SetIndex(pkKey, skKey string) {
