@@ -27,11 +27,6 @@ type DBManager struct {
 	// TTL is a UnixTime timestamp that is used to set the Time To Live
 	// (TTL) for the item in DynamoDB.
 	TTL UnixTime `dynamodbav:"ttl,omitempty" json:"ttl,omitempty"`
-
-	// RowData is a map of data retrieved from DynamoDB during the last
-	// GetItem operation. This is useful for comparing the old values
-	// with the new values after a PutItem operation.
-	RowData map[string]awstypes.AttributeValue `dynamodbav:"-" json:"-"`
 }
 
 // DBManagerInterface defines the interface for DynamoDB operations.

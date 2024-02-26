@@ -3,7 +3,6 @@ package dynamo
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/entegral/gobox/clients"
 	"github.com/entegral/gobox/types"
@@ -79,16 +78,7 @@ func (d *DBManager) getItemPrependTypeWithClient(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	// if the row has a RowData field by embedding the Row struct, set it
-	rowValue := reflect.ValueOf(row).Elem()
-	if rowDataField := rowValue.FieldByName("Row"); rowDataField.IsValid() {
-		if DBManager := rowDataField.FieldByName("DBManager"); DBManager.IsValid() {
-			rowData := DBManager.FieldByName("RowData")
-			if rowData.CanSet() {
-				rowData.Set(reflect.ValueOf(out.Item))
-			}
-		}
-	}
+
 	return out, nil
 }
 

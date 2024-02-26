@@ -22,6 +22,14 @@ func (k *Key) IndexName() *string {
 	return &s
 }
 
+func (k *Key) GetPkKey() string {
+	return k.pkKey
+}
+
+func (k *Key) GetSkKey() string {
+	return k.skKey
+}
+
 func NewGSIKey(pkKey, skKey, partitionKey, sortKey string) Key {
 	return Key{
 		pkKey:        pkKey,
