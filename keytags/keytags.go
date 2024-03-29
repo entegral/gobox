@@ -19,18 +19,17 @@ func generateCompositeKeys(v interface{}, delimiter string) (map[string]string, 
 	typeName := val.Type().Name() // Get the type name of the struct.
 
 	keys := make(map[string][]keyPart)
+	orderUsed := make(map[string]map[int]bool) // New: Track orders used for each key type.
 
 	for i := 0; i < val.NumField(); i++ {
-		field := val.Type().Field(i) // This gets the field's metadata.
-		fieldValue := val.Field(i)   // This gets the field's value as reflect.Value.
+		field := val.Type().Field(i)
+		fieldValue := val.Field(i) // Ensure you're working with the field's value.
 
-		// Use fieldValue.Kind() to get the kind of the field's value.
 		if fieldValue.Kind() == reflect.Slice || fieldValue.Kind() == reflect.Array {
 			return nil, fmt.Errorf("slice or array field %s.%s cannot be used for key generation", typeName, field.Name)
 		}
 
-		// Check if the field's type is not one of the supported primitive types for key generation.
-		if !fieldValue.Type().Comparable() || fieldValue.Kind() == reflect.Struct || fieldValue.Kind() == reflect.Map || fieldValue.Kind() == reflect.Func || fieldValue.Kind() == reflect.Chan {
+		if !fieldValue.IsValid() || fieldValue.Kind() == reflect.Struct || fieldValue.Kind() == reflect.Map || fieldValue.Kind() == reflect.Func || fieldValue.Kind() == reflect.Chan {
 			return nil, fmt.Errorf("non-primitive field %s.%s cannot be used for key generation", typeName, field.Name)
 		}
 
@@ -50,6 +49,15 @@ func generateCompositeKeys(v interface{}, delimiter string) (map[string]string, 
 				return nil, fmt.Errorf("invalid order in %s tag for %s.%s: %v", keyName, typeName, field.Name, err)
 			}
 
+			// New: Check for duplicate orders within the same key type.
+			if _, exists := orderUsed[keyName]; !exists {
+				orderUsed[keyName] = make(map[int]bool)
+			}
+			if orderUsed[keyName][order] {
+				return nil, fmt.Errorf("duplicate key ordering specified for %s in %s, both specify %d term", keyName, typeName, order)
+			}
+			orderUsed[keyName][order] = true
+
 			operationAndValue := strings.SplitN(parts[1], "=", 2) // Split operation from value.
 			if len(operationAndValue) != 2 {
 				return nil, fmt.Errorf("malformed tag for %s.%s: missing operation or value", typeName, field.Name)
@@ -58,18 +66,18 @@ func generateCompositeKeys(v interface{}, delimiter string) (map[string]string, 
 			operation := operationAndValue[0]
 			value := operationAndValue[1]
 
-			fieldValue := fmt.Sprintf("%v", val.Field(i).Interface())
-			if (fieldValue == "0" || strings.TrimSpace(fieldValue) == "" || fieldValue == "false") && (keyName == "pk" || strings.HasPrefix(keyName, "pk")) {
+			// Corrected zero or empty value check
+			if (keyName == "pk" || strings.HasPrefix(keyName, "pk")) && (fieldValue.Kind() == reflect.String && strings.TrimSpace(fieldValue.String()) == "" || !fieldValue.IsValid() || reflect.DeepEqual(fieldValue.Interface(), reflect.Zero(fieldValue.Type()).Interface())) {
 				return nil, fmt.Errorf("zero or empty value for field %s.%s used in %s", typeName, field.Name, keyName)
 			}
 
 			var keyValue string
 			if operation == "prepend" {
-				keyValue = value + fieldValue
+				keyValue = value + fmt.Sprint(fieldValue)
 			} else if operation == "append" {
-				keyValue = fieldValue + value
+				keyValue = fmt.Sprint(fieldValue) + value
 			} else {
-				keyValue = fieldValue // Just use the field value if no valid operation is specified.
+				keyValue = fmt.Sprint(fieldValue) // Just use the field value if no valid operation is specified.
 			}
 
 			keys[keyName] = append(keys[keyName], keyPart{Value: keyValue, Order: order})

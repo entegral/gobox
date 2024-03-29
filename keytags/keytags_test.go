@@ -2,6 +2,7 @@ package keytags
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -200,5 +201,24 @@ func TestGenerateCompositeKeysSliceField(t *testing.T) {
 		t.Error("Expected an error for slice field used for key generation, but got nil")
 	} else {
 		t.Log("Received expected error:", err)
+	}
+}
+
+func TestGenerateCompositeKeysDuplicateOrder(t *testing.T) {
+	type InventoryItem struct {
+		ID   string `pk:"1,prepend=ITEM#"`
+		Code string `pk:"1,append=#CODE"` // Deliberate duplicate order for testing
+	}
+
+	item := InventoryItem{ID: "123", Code: "XYZ"}
+
+	_, err := generateCompositeKeys(&item, ":")
+	if err == nil {
+		t.Fatal("Expected an error due to duplicate order in pk tags, but got nil")
+	}
+
+	expectedErrorMsg := "duplicate key ordering specified" // This should be part of your error message
+	if !strings.Contains(err.Error(), expectedErrorMsg) {
+		t.Errorf("Expected error message to contain '%s', got: %v", expectedErrorMsg, err)
 	}
 }
