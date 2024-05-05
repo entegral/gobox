@@ -7,12 +7,11 @@ import (
 type Key struct {
 	name  string
 	value string
-	index int
 }
 
 // NewKey creates a new key with the given name and value and index.
-func NewKey(name, value string, index int) Key {
-	return Key{name, value, index}
+func NewKey(name, value string) Key {
+	return Key{name, value}
 }
 
 func (k Key) DynamoMapValue() types.AttributeValue {
